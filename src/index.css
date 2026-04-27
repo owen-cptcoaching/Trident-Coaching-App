@@ -1,0 +1,18 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Playfair+Display:ital,wght@0,900;1,900&family=Lobster&family=Oswald:wght@400;700&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Lobster", cursive, "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "Lobster", cursive, "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
+  --font-display: "Lobster", cursive, "Playfair Display", serif;
+  --font-serif: "Lobster", cursive, "Playfair Display", serif;
+  --font-logo: "Lobster", cursive;
+  --font-holigas: "Holigas", "Oswald", sans-serif;
+  --font-oswald: "Oswald", sans-serif;
+}
+
+@layer base {
+  body {
+    @apply font-sans bg-[#F9F8F6] text-[#1A1A1A] antialiased;
+  }
+}
