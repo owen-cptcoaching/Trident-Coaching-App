@@ -91,14 +91,16 @@ export async function generateCoachingPlan(stats: UserStats): Promise<CoachingRe
     
     User Profile:
     - Age: ${stats.age}
-    - Weight: ${stats.weight}kg
-    - Height: ${stats.height}cm
+    - Weight: ${stats.weight}lbs
+    - Height: ${stats.height}in
     - Gender: ${stats.gender}
     - Activity Level: ${stats.activityLevel}
     - Goal: ${stats.goal}
     
     Requirements:
     1. Training Program: 7-day schedule (including rest days). Exercises should be appropriate for the user's profile.
+       - Workout types MUST be categorized as either: Hypertrophy, Strength, Power, or Cardio.
+       - Ensure the "focus" field clearly indicates one of these 4 types (e.g., "Full Body Strength", "Upper Body Hypertrophy", "Cardio Recovery").
     2. Nutrition Plan: Detailed meal plan with breakfast, lunch, dinner, and snacks. Include total calories and macro breakdown (Protein, Carbs, Fat).
     3. Ensure the formatting is "very easy to understand" as requested.
   `;

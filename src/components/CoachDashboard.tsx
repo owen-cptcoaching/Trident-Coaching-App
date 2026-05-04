@@ -1,0 +1,282 @@
+import React, { useState } from 'react';
+import { motion, AnimatePresence } from 'motion/react';
+import { Users, UserPlus, Settings, Activity, ArrowRight, ChevronDown } from 'lucide-react';
+
+interface CoachDashboardProps {
+  isHeadCoach: boolean;
+  onExit: () => void;
+}
+
+export const CoachDashboard: React.FC<CoachDashboardProps> = ({ isHeadCoach, onExit }) => {
+  const [activeTab, setActiveTab] = useState<'clients' | 'all-clients' | 'coaches' | 'settings'>('clients');
+  const [revenuePeriod, setRevenuePeriod] = useState<'monthly' | 'yearly' | 'all-time'>('monthly');
+  const [isRevenueExpanded, setIsRevenueExpanded] = useState(false);
+  const [isPeriodDropdownOpen, setIsPeriodDropdownOpen] = useState(false);
+
+  // Placeholder data
+  const clients = [
+    { id: 1, name: 'John Doe', status: 'Active', phase: 'Hypertrophy', coach: 'Mike Mentzer' },
+    { id: 2, name: 'Sarah Connor', status: 'Onboarding', phase: 'Strength', coach: 'Mike Mentzer' },
+    { id: 3, name: 'David Goggins', status: 'Active', phase: 'Power', coach: 'Tom Platz' },
+    { id: 4, name: 'Ronnie Coleman', status: 'Active', phase: 'Hypertrophy', coach: 'Head Coach' },
+  ];
+
+  const coaches = [
+    { id: 1, name: 'Mike Mentzer', activeClients: 12, specialization: 'Hypertrophy' },
+    { id: 2, name: 'Tom Platz', activeClients: 8, specialization: 'Legs / Strength' },
+  ];
+
+  const revenueData = {
+    monthly: 12500,
+    yearly: 150000,
+    'all-time': 350000
+  };
+
+  const displayedClients = activeTab === 'all-clients' ? clients : clients.filter(c => c.coach === 'Head Coach');
+
+  return (
+    <div className="min-h-screen bg-stone-50 flex flex-col font-sans text-stone-900">
+      <header className="px-6 md:px-12 pt-10 pb-6 border-b border-stone-200 flex flex-col md:flex-row justify-between items-baseline gap-6 bg-white">
+        <div className="flex flex-col">
+          <h1 className="text-6xl md:text-7xl font-logo tracking-tight font-normal text-stone-900 leading-none">Trident</h1>
+          <p className="text-[10px] uppercase tracking-[0.3em] font-bold text-stone-400 mt-2 font-oswald">
+            {isHeadCoach ? 'Head Coach Dashboard' : 'Coach Dashboard'}
+          </p>
+        </div>
+        
+        <button 
+          onClick={onExit}
+          className="text-xs uppercase tracking-widest font-bold underline hover:text-stone-500 transition-colors"
+        >
+          Return to Client View
+        </button>
+      </header>
+
+      <main className="flex-1 p-6 md:p-12 max-w-7xl mx-auto w-full flex flex-col md:flex-row gap-12">
+        {/* Sidebar */}
+        <aside className="w-full md:w-64 shrink-0 flex flex-col gap-2">
+          <button 
+            onClick={() => setActiveTab('clients')}
+            className={`text-left px-4 py-3 text-xs uppercase tracking-widest font-bold font-oswald flex items-center gap-3 transition-colors ${
+              activeTab === 'clients' ? 'bg-stone-900 text-white' : 'hover:bg-stone-100'
+            }`}
+          >
+            <Users size={16} />
+            My Clients
+          </button>
+          
+          {isHeadCoach && (
+            <>
+              <button 
+                onClick={() => setActiveTab('all-clients')}
+                className={`text-left px-4 py-3 text-xs uppercase tracking-widest font-bold font-oswald flex items-center gap-3 transition-colors ${
+                  activeTab === 'all-clients' ? 'bg-stone-900 text-white' : 'hover:bg-stone-100'
+                }`}
+              >
+                <Users size={16} className="text-stone-400 group-hover:text-current" />
+                All Clients
+              </button>
+              <button 
+                onClick={() => setActiveTab('coaches')}
+                className={`text-left px-4 py-3 text-xs uppercase tracking-widest font-bold font-oswald flex items-center gap-3 transition-colors ${
+                  activeTab === 'coaches' ? 'bg-stone-900 text-white' : 'hover:bg-stone-100'
+                }`}
+              >
+                <UserPlus size={16} />
+                Manage Coaches
+              </button>
+            </>
+          )}
+
+          <button 
+            onClick={() => setActiveTab('settings')}
+            className={`text-left px-4 py-3 text-xs uppercase tracking-widest font-bold font-oswald flex items-center gap-3 transition-colors ${
+              activeTab === 'settings' ? 'bg-stone-900 text-white' : 'hover:bg-stone-100'
+            }`}
+          >
+            <Settings size={16} />
+            Settings
+          </button>
+        </aside>
+
+        {/* Main Content */}
+        <div className="flex-1">
+          <motion.div
+            key={activeTab}
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            transition={{ duration: 0.2 }}
+          >
+            {(activeTab === 'clients' || activeTab === 'all-clients') && (
+              <div className="space-y-6">
+                <div className="flex justify-between items-center border-b border-stone-200 pb-4">
+                  <h2 className="text-xl font-bold uppercase tracking-tight font-oswald">
+                    {activeTab === 'all-clients' ? 'All Clients' : 'Client Overview'}
+                  </h2>
+                  <button className="bg-stone-900 text-white px-4 py-2 text-[10px] uppercase tracking-widest font-bold hover:bg-stone-800 transition-colors">
+                    Add Client
+                  </button>
+                </div>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {displayedClients.map(client => (
+                    <div key={client.id} className="bg-white border border-stone-200 p-6 flex flex-col group hover:border-stone-400 transition-colors cursor-pointer">
+                      <div className="flex justify-between items-start mb-8">
+                        <h3 className="font-bold text-lg">{client.name}</h3>
+                        <span className="text-[10px] uppercase tracking-widest font-bold text-stone-500 bg-stone-100 px-2 py-1">
+                          {client.status}
+                        </span>
+                      </div>
+                      
+                      <div className="space-y-2 mt-auto">
+                        <p className="text-xs text-stone-500 font-serif italic">Phase: {client.phase}</p>
+                        {isHeadCoach && (
+                          <p className="text-xs text-stone-500">Coach: <span className="font-bold">{client.coach}</span></p>
+                        )}
+                      </div>
+                      
+                      <div className="mt-6 pt-4 border-t border-stone-100 flex items-center justify-between text-xs font-bold uppercase tracking-widest text-stone-400 group-hover:text-stone-900 transition-colors">
+                        View Plan <ArrowRight size={14} />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {activeTab === 'coaches' && isHeadCoach && (
+              <div className="space-y-6">
+                <div className="flex justify-between items-center border-b border-stone-200 pb-4">
+                  <h2 className="text-xl font-bold uppercase tracking-tight font-oswald">Coach Management</h2>
+                  <button className="bg-stone-900 text-white px-4 py-2 text-[10px] uppercase tracking-widest font-bold hover:bg-stone-800 transition-colors">
+                    Invite Coach
+                  </button>
+                </div>
+
+                <div className="bg-white border border-stone-200">
+                  <table className="w-full text-left">
+                    <thead className="bg-stone-100 text-[10px] uppercase tracking-widest font-bold text-stone-500 font-oswald border-b border-stone-200">
+                      <tr>
+                        <th className="px-6 py-4">Name</th>
+                        <th className="px-6 py-4">Specialization</th>
+                        <th className="px-6 py-4">Active Clients</th>
+                        <th className="px-6 py-4">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody className="text-sm">
+                      {coaches.map(coach => (
+                        <tr key={coach.id} className="border-b border-stone-100 last:border-0 hover:bg-stone-50 transition-colors">
+                          <td className="px-6 py-4 font-bold">{coach.name}</td>
+                          <td className="px-6 py-4 italic font-serif text-stone-500">{coach.specialization}</td>
+                          <td className="px-6 py-4">{coach.activeClients}</td>
+                          <td className="px-6 py-4 text-xs font-bold uppercase tracking-widest cursor-pointer underline hover:text-stone-500">Edit</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            )}
+
+            {activeTab === 'settings' && (
+              <div className="space-y-6">
+                <div className="flex items-center border-b border-stone-200 pb-4">
+                  <h2 className="text-xl font-bold uppercase tracking-tight font-oswald">Settings</h2>
+                </div>
+                
+                {isHeadCoach ? (
+                  <div className="bg-white border border-stone-200">
+                    <button 
+                      onClick={() => setIsRevenueExpanded(!isRevenueExpanded)}
+                      className="w-full flex items-center justify-between p-6 hover:bg-stone-50 transition-colors"
+                    >
+                      <h3 className="text-lg font-bold uppercase tracking-tight font-oswald mb-0">Total Revenue</h3>
+                      <ChevronDown size={20} className={`text-stone-400 transition-transform duration-200 ${isRevenueExpanded ? 'rotate-180' : ''}`} />
+                    </button>
+
+                    <AnimatePresence>
+                      {isRevenueExpanded && (
+                        <motion.div
+                          initial={{ height: 0, opacity: 0 }}
+                          animate={{ height: 'auto', opacity: 1 }}
+                          exit={{ height: 0, opacity: 0 }}
+                          transition={{ duration: 0.2 }}
+                          className="overflow-hidden"
+                        >
+                          <div className="px-6 pb-6 md:px-6 md:pb-8 border-t border-stone-100 mt-6">
+                            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6 mb-8">
+                              <div>
+                                <p className="text-xs text-stone-500 font-serif italic">Across all coaches and subscriptions.</p>
+                              </div>
+
+                              <div className="relative">
+                                <button
+                                  onClick={() => setIsPeriodDropdownOpen(!isPeriodDropdownOpen)}
+                                  className="flex items-center justify-between w-[120px] bg-stone-100 border border-stone-200 text-[10px] font-bold uppercase tracking-widest text-stone-900 py-2 pl-4 pr-3 rounded-sm cursor-pointer outline-none focus:ring-1 focus:ring-black focus:border-black transition-colors"
+                                >
+                                  {revenuePeriod.replace('-', ' ')}
+                                  <ChevronDown size={14} className="text-stone-500" />
+                                </button>
+                                
+                                <AnimatePresence>
+                                  {isPeriodDropdownOpen && (
+                                    <>
+                                      <div 
+                                        className="fixed inset-0 z-10" 
+                                        onClick={() => setIsPeriodDropdownOpen(false)} 
+                                      />
+                                      <motion.div
+                                        initial={{ opacity: 0, y: -5 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        exit={{ opacity: 0, y: -5 }}
+                                        transition={{ duration: 0.1 }}
+                                        className="absolute right-0 sm:left-0 top-full mt-1 w-[120px] bg-white border border-stone-200 shadow-lg z-20 rounded-sm py-1 flex flex-col"
+                                      >
+                                        {(['monthly', 'yearly', 'all-time'] as const).map(period => (
+                                          <button
+                                            key={period}
+                                            onClick={() => {
+                                              setRevenuePeriod(period);
+                                              setIsPeriodDropdownOpen(false);
+                                            }}
+                                            className={`text-left px-4 py-2 text-[10px] font-bold uppercase tracking-widest transition-colors ${
+                                              revenuePeriod === period
+                                                ? 'bg-stone-900 text-white'
+                                                : 'text-stone-700 hover:bg-stone-100'
+                                            }`}
+                                          >
+                                            {period.replace('-', ' ')}
+                                          </button>
+                                        ))}
+                                      </motion.div>
+                                    </>
+                                  )}
+                                </AnimatePresence>
+                              </div>
+                            </div>
+
+                            <div className="flex items-baseline gap-2">
+                              <span className="text-4xl md:text-6xl font-logo tracking-tighter text-stone-900">
+                                ${revenueData[revenuePeriod].toLocaleString()}
+                              </span>
+                              <span className="text-sm font-bold uppercase tracking-widest text-stone-400 font-oswald">
+                                USD
+                              </span>
+                            </div>
+                          </div>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  </div>
+                ) : (
+                  <p className="text-stone-500 italic font-serif text-sm">Settings panel coming soon.</p>
+                )}
+              </div>
+            )}
+          </motion.div>
+        </div>
+      </main>
+    </div>
+  );
+};

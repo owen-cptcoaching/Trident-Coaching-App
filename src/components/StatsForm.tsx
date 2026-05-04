@@ -1,29 +1,103 @@
-import React from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { UserStats } from '../types';
-import { User, Activity, Target, ArrowRight, Loader2 } from 'lucide-react';
-import { motion } from 'motion/react';
+import { User, Activity, Target, ArrowRight, Loader2, ChevronDown } from 'lucide-react';
+import { motion, AnimatePresence } from 'motion/react';
 
 interface StatsFormProps {
   onSubmit: (stats: UserStats) => void;
   isLoading: boolean;
 }
 
+const CustomSelect = ({ 
+  value, 
+  options, 
+  onChange, 
+  name, 
+  label 
+}: { 
+  value: string; 
+  options: { label: string; value: string }[]; 
+  onChange: (name: string, value: string) => void; 
+  name: string; 
+  label: React.ReactNode; 
+}) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
+        setIsOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const selectedOption = options.find((opt) => opt.value === value);
+
+  return (
+    <div className="space-y-2 border-b border-stone-100 pb-4 relative" ref={containerRef}>
+      <label className="text-[10px] font-bold uppercase tracking-[0.2em] text-stone-400 flex items-center gap-2 font-oswald">
+        {label}
+      </label>
+      <div 
+        className="w-full bg-transparent border-none p-0 focus:ring-0 outline-none text-sm font-bold uppercase tracking-widest font-oswald flex items-center justify-between cursor-pointer"
+        onClick={() => setIsOpen(!isOpen)}
+      >
+        <span>{selectedOption?.label}</span>
+        <ChevronDown size={14} className={`text-stone-400 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+      </div>
+      
+      <AnimatePresence>
+        {isOpen && (
+          <motion.div 
+            initial={{ opacity: 0, y: 5 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 5 }}
+            className="absolute top-full left-0 w-full mt-2 bg-white border border-stone-200 shadow-xl z-50 py-1"
+          >
+            {options.map((opt) => (
+              <div
+                key={opt.value}
+                className={`px-4 py-2 text-sm font-bold uppercase tracking-widest font-oswald cursor-pointer transition-colors ${
+                  value === opt.value ? 'bg-stone-900 text-white' : 'hover:bg-stone-900 hover:text-white'
+                }`}
+                onClick={() => {
+                  onChange(name, opt.value);
+                  setIsOpen(false);
+                }}
+              >
+                {opt.label}
+              </div>
+            ))}
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+};
+
 export const StatsForm: React.FC<StatsFormProps> = ({ onSubmit, isLoading }) => {
   const [formData, setFormData] = React.useState<UserStats>({
     age: 30,
-    weight: 75,
-    height: 175,
+    weight: 165,
+    height: 70,
     gender: 'male',
     activityLevel: 'moderately_active',
     goal: 'maintenance',
   });
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData((prev) => ({
       ...prev,
       [name]: ['age', 'weight', 'height'].includes(name) ? Number(value) : value,
     }));
+  };
+  
+  const handleSelectChange = (name: string, value: string) => {
+    setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -59,7 +133,7 @@ export const StatsForm: React.FC<StatsFormProps> = ({ onSubmit, isLoading }) => 
           </div>
           <div className="space-y-2 border-b border-stone-100 pb-4">
             <label className="text-[10px] font-bold uppercase tracking-[0.2em] text-stone-400 flex items-center gap-2 font-oswald">
-              Weight (kg)
+              Weight (lbs)
             </label>
             <input
               type="number"
@@ -72,7 +146,7 @@ export const StatsForm: React.FC<StatsFormProps> = ({ onSubmit, isLoading }) => 
           </div>
           <div className="space-y-2 border-b border-stone-100 pb-4">
             <label className="text-[10px] font-bold uppercase tracking-[0.2em] text-stone-400 flex items-center gap-2 font-oswald">
-              Height (cm)
+              Height (in)
             </label>
             <input
               type="number"
@@ -86,56 +160,44 @@ export const StatsForm: React.FC<StatsFormProps> = ({ onSubmit, isLoading }) => 
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-          <div className="space-y-2 border-b border-stone-100 pb-4">
-            <label className="text-[10px] font-bold uppercase tracking-[0.2em] text-stone-400 flex items-center gap-2 font-oswald">
-              Gender
-            </label>
-            <select
-              name="gender"
-              value={formData.gender}
-              onChange={handleChange}
-              className="w-full bg-transparent border-none p-0 focus:ring-0 outline-none text-sm font-bold uppercase tracking-widest appearance-none font-oswald"
-            >
-              <option value="male">Male</option>
-              <option value="female">Female</option>
-              <option value="other">Other</option>
-            </select>
-          </div>
-          <div className="space-y-2 border-b border-stone-100 pb-4">
-            <label className="text-[10px] font-bold uppercase tracking-[0.2em] text-stone-400 flex items-center gap-2 font-oswald">
-              <Activity size={12} /> Activity Level
-            </label>
-            <select
-              name="activityLevel"
-              value={formData.activityLevel}
-              onChange={handleChange}
-              className="w-full bg-transparent border-none p-0 focus:ring-0 outline-none text-sm font-bold uppercase tracking-widest appearance-none font-oswald"
-            >
-              <option value="sedentary">Sedentary</option>
-              <option value="lightly_active">Lightly Active</option>
-              <option value="moderately_active">Moderately Active</option>
-              <option value="very_active">Very Active</option>
-              <option value="extra_active">Extra Active</option>
-            </select>
-          </div>
+          <CustomSelect
+            name="gender"
+            label="Gender"
+            value={formData.gender}
+            options={[
+              { label: 'Male', value: 'male' },
+              { label: 'Female', value: 'female' },
+              { label: 'Other', value: 'other' }
+            ]}
+            onChange={handleSelectChange}
+          />
+          <CustomSelect
+            name="activityLevel"
+            label={<><Activity size={12} /> Activity Level</>}
+            value={formData.activityLevel}
+            options={[
+              { label: 'Sedentary', value: 'sedentary' },
+              { label: 'Lightly Active', value: 'lightly_active' },
+              { label: 'Moderately Active', value: 'moderately_active' },
+              { label: 'Very Active', value: 'very_active' },
+              { label: 'Extra Active', value: 'extra_active' }
+            ]}
+            onChange={handleSelectChange}
+          />
         </div>
 
-        <div className="space-y-2 border-b border-stone-100 pb-4">
-          <label className="text-[10px] font-bold uppercase tracking-[0.2em] text-stone-400 flex items-center gap-2 font-oswald">
-            <Target size={12} /> Primary Goal
-          </label>
-          <select
-            name="goal"
-            value={formData.goal}
-            onChange={handleChange}
-            className="w-full bg-transparent border-none p-0 focus:ring-0 outline-none text-sm font-bold uppercase tracking-widest appearance-none font-oswald"
-          >
-            <option value="weight_loss">Weight Loss</option>
-            <option value="muscle_gain">Muscle Gain</option>
-            <option value="maintenance">Maintenance</option>
-            <option value="athletic_performance">Athletic Performance</option>
-          </select>
-        </div>
+        <CustomSelect
+          name="goal"
+          label={<><Target size={12} /> Primary Goal</>}
+          value={formData.goal}
+          options={[
+            { label: 'Weight Loss', value: 'weight_loss' },
+            { label: 'Muscle Gain', value: 'muscle_gain' },
+            { label: 'Maintenance', value: 'maintenance' },
+            { label: 'Athletic Performance', value: 'athletic_performance' }
+          ]}
+          onChange={handleSelectChange}
+        />
 
         <button
           type="submit"
@@ -153,6 +215,16 @@ export const StatsForm: React.FC<StatsFormProps> = ({ onSubmit, isLoading }) => 
             </>
           )}
         </button>
+
+        <div className="flex justify-center mt-6">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="inline-block px-4 py-1.5 bg-white border border-stone-200 text-stone-900 rounded-full text-[10px] font-bold font-holigas uppercase tracking-widest"
+          >
+            AI-Powered Precision Coaching
+          </motion.div>
+        </div>
       </form>
     </motion.div>
   );
