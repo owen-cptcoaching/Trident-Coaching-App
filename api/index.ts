@@ -68,6 +68,8 @@ app.post("/api/create-checkout-session", async (req, res) => {
   try {
     const stripe = getStripe();
     
+    const baseUrl = process.env.APP_URL || (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'http://localhost:3000');
+    
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ["card"],
       line_items: [
@@ -83,8 +85,8 @@ app.post("/api/create-checkout-session", async (req, res) => {
         },
       ],
       mode: "payment",
-      success_url: `${process.env.APP_URL || 'http://localhost:3000'}/?success=true`,
-      cancel_url: `${process.env.APP_URL || 'http://localhost:3000'}/?canceled=true`,
+      success_url: `${baseUrl}/?success=true`,
+      cancel_url: `${baseUrl}/?canceled=true`,
     });
 
     res.json({ id: session.id, url: session.url });
