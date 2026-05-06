@@ -10,6 +10,7 @@ import { StatsForm } from './components/StatsForm';
 import { TrainingView } from './components/TrainingView';
 import { NutritionView } from './components/NutritionView';
 import { CoachDashboard } from './components/CoachDashboard';
+import { ClientDashboard } from './components/ClientDashboard';
 import { Activity, Apple, LayoutDashboard, ChevronRight, Lock } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { cn } from './lib/utils';
@@ -23,7 +24,7 @@ export default function App() {
   const [plan, setPlan] = React.useState<CoachingResponse | null>(null);
   const [isLoading, setIsLoading] = React.useState(false);
   const [isCheckingOut, setIsCheckingOut] = React.useState(false);
-  const [activeTab, setActiveTab] = React.useState<'training' | 'nutrition'>('training');
+  const [activeTab, setActiveTab] = React.useState<'dashboard' | 'assessment' | 'training' | 'nutrition'>('assessment');
   const [activeStation, setActiveStation] = React.useState<'T1' | 'T2' | 'T3'>('T1');
   const [currentView, setCurrentView] = React.useState<'client' | 'coach-dashboard'>('client');
 
@@ -127,6 +128,7 @@ export default function App() {
     try {
       const generatedPlan = await generateCoachingPlan(newStats);
       setPlan(generatedPlan);
+      setActiveTab('dashboard');
     } catch (error) {
       console.error(error);
       alert('Failed to generate plan. Please try again.');
@@ -162,6 +164,7 @@ export default function App() {
   const reset = () => {
     setStats(null);
     setPlan(null);
+    setActiveTab('assessment');
   };
 
   if (isInitializingAuth) {
@@ -197,6 +200,15 @@ export default function App() {
         {plan && (
           <nav className="flex items-center gap-1 bg-stone-100 p-1 rounded-sm border border-stone-200">
             <button
+              onClick={() => setActiveTab('dashboard')}
+              className={cn(
+                "flex items-center gap-2 px-6 py-2 text-[10px] font-bold uppercase tracking-widest transition-all",
+                activeTab === 'dashboard' ? "bg-stone-900 text-white" : "text-stone-400 hover:text-stone-900"
+              )}
+            >
+              <LayoutDashboard size={12} /> Dashboard
+            </button>
+            <button
               onClick={() => setActiveTab('training')}
               className={cn(
                 "flex items-center gap-2 px-6 py-2 text-[10px] font-bold uppercase tracking-widest transition-all",
@@ -230,7 +242,7 @@ export default function App() {
 
       <main className="max-w-7xl mx-auto px-6 md:px-12 py-12 md:py-20 lg:border-x lg:border-stone-100 min-h-[calc(100vh-200px)]">
         <AnimatePresence mode="wait">
-          {!plan ? (
+          {activeTab === 'assessment' && (
             <motion.div
               key="setup"
               initial={{ opacity: 0, scale: 0.98 }}
@@ -250,11 +262,61 @@ export default function App() {
 
               <StatsForm onSubmit={handleStatsSubmit} isLoading={isLoading} />
             </motion.div>
-          ) : (
+          )}
+
+          {activeTab === 'dashboard' && (
             <motion.div
-              key="dashboard"
+              key="dashboard-view"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+            >
+              {plan && (
+                <div className="flex items-center justify-between text-stone-400 pb-6 border-b border-stone-200 mb-12">
+                  <div className="flex items-center gap-8 overflow-x-auto no-scrollbar">
+                    {[
+                      { label: 'Weight', val: `${stats?.weight}lbs` },
+                      { label: 'Goal', val: stats?.goal.replace('_', ' ') },
+                      { label: 'Activity', val: stats?.activityLevel.replace('_', ' ') }
+                    ].map((item) => (
+                      <div key={item.label} className="flex items-baseline gap-2 shrink-0">
+                        <span className="text-[10px] font-bold uppercase tracking-widest">{item.label}</span>
+                        <span className="font-mono text-sm text-stone-900 font-bold uppercase">{item.val}</span>
+                      </div>
+                    ))}
+                  </div>
+                  <div className="flex gap-4">
+                    <button 
+                      onClick={() => setActiveTab('assessment')}
+                      className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest hover:text-stone-900 transition-colors"
+                    >
+                      Edit Profile <ChevronRight size={12} />
+                    </button>
+                    <button 
+                      onClick={handleCheckout}
+                      disabled={isCheckingOut}
+                      className="flex items-center gap-2 text-[10px] bg-stone-900 text-white px-4 py-2 font-bold uppercase tracking-widest hover:bg-stone-800 transition-colors disabled:opacity-50"
+                    >
+                      <Lock size={12} /> {isCheckingOut ? 'Loading...' : 'Purchase Plan'}
+                    </button>
+                  </div>
+                </div>
+              )}
+              
+              <ClientDashboard 
+                hasProgram={!!plan}
+                onOpenProgram={() => setActiveTab('training')}
+                onGenerateProgram={() => setActiveTab('assessment')}
+              />
+            </motion.div>
+          )}
+
+          {(activeTab === 'training' || activeTab === 'nutrition') && plan && (
+            <motion.div
+              key="program-view"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
               className="space-y-12"
             >
               {/* User Context Bar */}
@@ -273,7 +335,7 @@ export default function App() {
                 </div>
                 <div className="flex gap-4">
                   <button 
-                    onClick={reset}
+                    onClick={() => setActiveTab('assessment')}
                     className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest hover:text-stone-900 transition-colors"
                   >
                     Edit Profile <ChevronRight size={12} />

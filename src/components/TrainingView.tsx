@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { TrainingProgram, Exercise } from '../types';
 import { Dumbbell, Clock, Info, CheckCircle2, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
@@ -11,7 +11,15 @@ interface TrainingViewProps {
 
 export const TrainingView: React.FC<TrainingViewProps> = ({ program, isCoach = false }) => {
   const [selectedExercise, setSelectedExercise] = useState<Exercise | null>(null);
+  const [tutorialExercise, setTutorialExercise] = useState<Exercise | null>(null);
   const [layoutMode, setLayoutMode] = useState<'lifestyle' | 'powerlifting'>('lifestyle');
+  const [openMenuId, setOpenMenuId] = useState<string | null>(null);
+
+  useEffect(() => {
+    const handleClickOutside = () => setOpenMenuId(null);
+    window.addEventListener('click', handleClickOutside);
+    return () => window.removeEventListener('click', handleClickOutside);
+  }, []);
 
   const calculateTargetWeight = (setIndex: number) => {
     // Dynamic small range
@@ -101,15 +109,36 @@ export const TrainingView: React.FC<TrainingViewProps> = ({ program, isCoach = f
                       day.exercises.map((ex, exIdx) => (
                         <tr 
                           key={exIdx} 
-                          className="border-b border-stone-200 hover:bg-stone-50 cursor-pointer transition-colors group"
-                          onClick={() => setSelectedExercise(ex)}
+                          className="border-b border-stone-200 hover:bg-stone-50 cursor-pointer transition-colors group relative"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setOpenMenuId(openMenuId === `${dayIdx}-${exIdx}` ? null : `${dayIdx}-${exIdx}`);
+                          }}
                         >
                           <td className="p-4 border-r border-stone-200 text-stone-400 font-mono text-center font-bold">
                             {String.fromCharCode(65 + exIdx)}
                           </td>
                           <td className="p-4 border-r border-stone-200">
-                            <div className="font-oswald font-bold uppercase text-stone-900 text-base">{ex.name}</div>
-                            {ex.notes && <div className="text-[10px] text-stone-500 font-serif italic truncate max-w-xs">{ex.notes}</div>}
+                            <div className="relative inline-block">
+                              <div className="font-oswald font-bold uppercase text-stone-900 text-base">{ex.name}</div>
+                              {openMenuId === `${dayIdx}-${exIdx}` && (
+                                <div className="absolute left-0 top-full flex flex-col bg-stone-900 text-stone-100 shadow-[4px_4px_0px_rgba(0,0,0,0.2)] z-20 w-40 overflow-hidden font-mono text-[10px] mt-1">
+                                  <button 
+                                    onClick={(e) => { e.stopPropagation(); setSelectedExercise(ex); setOpenMenuId(null); }}
+                                    className="px-4 py-3 text-left hover:bg-stone-700 transition-colors border-b border-stone-700 uppercase"
+                                  >
+                                    Stats
+                                  </button>
+                                  <button 
+                                    onClick={(e) => { e.stopPropagation(); setTutorialExercise(ex); setOpenMenuId(null); }}
+                                    className="px-4 py-3 text-left hover:bg-stone-700 transition-colors uppercase"
+                                  >
+                                    Exercise Tutorial
+                                  </button>
+                                </div>
+                              )}
+                            </div>
+                            {ex.notes && <div className="text-[10px] text-stone-500 font-serif italic truncate max-w-xs block mt-1">{ex.notes}</div>}
                           </td>
                           <td className="p-4 border-r border-stone-200 font-mono text-center font-bold text-stone-700">{ex.sets}</td>
                           <td className="p-4 border-r border-stone-200 font-mono text-center font-bold text-stone-700">{ex.reps}</td>
@@ -143,12 +172,33 @@ export const TrainingView: React.FC<TrainingViewProps> = ({ program, isCoach = f
                   day.exercises.map((ex, exIdx) => (
                     <div
                       key={exIdx}
-                      onClick={() => setSelectedExercise(ex)}
-                      className="flex items-baseline border-b border-stone-200 pb-4 transition-all hover:bg-stone-50 px-2 cursor-pointer group/ex"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setOpenMenuId(openMenuId === `${dayIdx}-${exIdx}` ? null : `${dayIdx}-${exIdx}`);
+                      }}
+                      className="flex items-baseline border-b border-stone-200 pb-4 transition-all hover:bg-stone-50 px-2 cursor-pointer relative group/ex"
                     >
                       <span className="w-12 text-xs font-black text-stone-300 uppercase tracking-widest group-hover/ex:text-stone-900 transition-colors">{String.fromCharCode(65 + exIdx)}1</span>
                       <div className="flex-1">
-                        <h4 className="text-lg font-oswald font-bold uppercase tracking-tight text-stone-900">{ex.name}</h4>
+                        <div className="relative inline-block">
+                          <h4 className="text-lg font-oswald font-bold uppercase tracking-tight text-stone-900">{ex.name}</h4>
+                          {openMenuId === `${dayIdx}-${exIdx}` && (
+                            <div className="absolute left-0 top-full flex flex-col bg-stone-900 text-stone-100 shadow-[4px_4px_0px_rgba(0,0,0,0.2)] z-20 w-40 overflow-hidden font-mono text-[10px] mt-1">
+                              <button 
+                                onClick={(e) => { e.stopPropagation(); setSelectedExercise(ex); setOpenMenuId(null); }}
+                                className="px-4 py-3 text-left hover:bg-stone-700 transition-colors border-b border-stone-700 uppercase"
+                              >
+                                Stats
+                              </button>
+                              <button 
+                                onClick={(e) => { e.stopPropagation(); setTutorialExercise(ex); setOpenMenuId(null); }}
+                                className="px-4 py-3 text-left hover:bg-stone-700 transition-colors uppercase"
+                              >
+                                Exercise Tutorial
+                              </button>
+                            </div>
+                          )}
+                        </div>
                         <p className="text-xs text-stone-400 font-serif italic line-clamp-1">
                           {ex.notes || "Control the eccentric movement"} {ex.rest ? `/ Rest: ${ex.rest}` : ""}
                         </p>
@@ -281,6 +331,73 @@ export const TrainingView: React.FC<TrainingViewProps> = ({ program, isCoach = f
                 >
                   Save & Close Set
                 </button>
+              </div>
+            </motion.div>
+          </>
+        )}
+
+        {tutorialExercise && (
+          <>
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setTutorialExercise(null)}
+              className="fixed inset-0 bg-stone-900/90 backdrop-blur-md z-[100] transition-opacity flex flex-col items-center justify-center p-4"
+            >
+              <div 
+                className="max-w-4xl w-full bg-black shadow-2xl relative border border-stone-800"
+                onClick={e => e.stopPropagation()}
+              >
+                <div className="absolute top-4 right-4 z-20">
+                  <button 
+                    onClick={() => setTutorialExercise(null)}
+                    className="p-2 bg-stone-900/80 text-white hover:bg-white hover:text-black rounded-full transition-colors font-mono backdrop-blur-sm"
+                  >
+                    <X size={20} />
+                  </button>
+                </div>
+                
+                <div className="relative w-full aspect-video bg-stone-900 flex flex-col items-center justify-center overflow-hidden">
+                  {/* Holographic overlay effects */}
+                  <div className="absolute inset-0 bg-cyan-500/10 mix-blend-color-dodge z-10 pointer-events-none"></div>
+                  <div className="absolute inset-0 bg-[repeating-linear-gradient(0deg,transparent,transparent_2px,rgba(0,0,0,0.2)_2px,rgba(0,0,0,0.2)_4px)] z-10 pointer-events-none"></div>
+                  
+                  {/* Placeholder video - holographic styling via CSS filters */}
+                  <video 
+                    autoPlay
+                    loop
+                    muted
+                    playsInline
+                    className="w-full h-full object-cover filter contrast-[1.2] brightness-[1.1] sepia-[.8] hue-rotate-[180deg] saturate-[1.5]"
+                    src="https://assets.mixkit.co/videos/preview/mixkit-man-doing-push-ups-in-a-gym-4482-large.mp4"
+                  />
+                  
+                  {/* UI Overlays on video */}
+                  <div className="absolute top-6 left-6 z-10">
+                    <div className="flex items-center gap-2 mb-1">
+                      <div className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse"></div>
+                      <span className="text-cyan-400 font-mono text-[10px] uppercase font-bold tracking-widest">Live Analysis</span>
+                    </div>
+                  </div>
+                  
+                  <div className="absolute bottom-6 left-6 right-6 z-10 flex justify-between items-end border-t border-cyan-500/30 pt-4">
+                    <div>
+                      <h3 className="font-oswald font-black uppercase text-4xl tracking-widest text-white drop-shadow-[0_0_8px_rgba(34,211,238,0.8)]">
+                        {tutorialExercise.name}
+                      </h3>
+                      <p className="font-mono text-cyan-200 text-xs mt-2 uppercase tracking-widest">
+                        Optimal Movement Pattern
+                      </p>
+                    </div>
+                    <div className="text-right">
+                      <p className="font-mono text-[10px] text-cyan-400 uppercase tracking-widest mb-1">Form Cues</p>
+                      <p className="font-serif italic text-sm text-cyan-100 max-w-xs leading-tight">
+                        {tutorialExercise.notes || "Maintain neutral spine. Brace core. Control eccentric phase."}
+                      </p>
+                    </div>
+                  </div>
+                </div>
               </div>
             </motion.div>
           </>
