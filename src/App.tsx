@@ -25,7 +25,6 @@ export default function App() {
   const [isLoading, setIsLoading] = React.useState(false);
   const [isCheckingOut, setIsCheckingOut] = React.useState(false);
   const [activeTab, setActiveTab] = React.useState<'dashboard' | 'assessment' | 'training' | 'nutrition'>('assessment');
-  const [activeStation, setActiveStation] = React.useState<'T1' | 'T2' | 'T3'>('T1');
   const [currentView, setCurrentView] = React.useState<'client' | 'coach-dashboard'>('client');
 
   const [isCoach, setIsCoach] = React.useState(false);
@@ -192,22 +191,20 @@ export default function App() {
     <div className="min-h-screen bg-[#F9F8F6]">
       {/* Header */}
       <header className="px-6 md:px-12 pt-10 pb-6 border-b border-stone-200 flex flex-col md:flex-row justify-between items-baseline gap-6">
-        <div className="flex flex-col cursor-pointer" onClick={reset}>
+        <div 
+          className="flex flex-col cursor-pointer hover:opacity-70 transition-opacity" 
+          onClick={() => {
+            if (activeTab === 'assessment' && !plan) return;
+            if (plan) setActiveTab('dashboard');
+            else setActiveTab('assessment');
+          }}
+        >
           <h1 className="text-6xl md:text-7xl font-logo tracking-tight font-normal text-stone-900 leading-none">Trident</h1>
           <p className="text-[10px] uppercase tracking-[0.3em] font-bold text-stone-400 mt-2 font-oswald">Elite Performance Coaching</p>
         </div>
 
         {plan && (
           <nav className="flex items-center gap-1 bg-stone-100 p-1 rounded-sm border border-stone-200">
-            <button
-              onClick={() => setActiveTab('dashboard')}
-              className={cn(
-                "flex items-center gap-2 px-6 py-2 text-[10px] font-bold uppercase tracking-widest transition-all",
-                activeTab === 'dashboard' ? "bg-stone-900 text-white" : "text-stone-400 hover:text-stone-900"
-              )}
-            >
-              <LayoutDashboard size={12} /> Dashboard
-            </button>
             <button
               onClick={() => setActiveTab('training')}
               className={cn(
@@ -231,10 +228,11 @@ export default function App() {
 
         <div className="text-right flex flex-col items-end">
           <p className="text-sm font-bold tracking-tight text-stone-800 italic uppercase font-oswald cursor-pointer hover:text-stone-500 transition-colors" onClick={() => {
-            const next = activeStation === 'T1' ? 'T2' : activeStation === 'T2' ? 'T3' : 'T1';
-            setActiveStation(next);
+            if (plan) {
+              setActiveTab('dashboard');
+            }
           }}>
-            Station: {activeStation}
+            My Dashboard
           </p>
           <p className="text-xs font-display italic text-stone-400 font-oswald">Peak Intensity Block / 2026</p>
         </div>
@@ -305,7 +303,8 @@ export default function App() {
               
               <ClientDashboard 
                 hasProgram={!!plan}
-                onOpenProgram={() => setActiveTab('training')}
+                onOpenTraining={() => setActiveTab('training')}
+                onOpenNutrition={() => setActiveTab('nutrition')}
                 onGenerateProgram={() => setActiveTab('assessment')}
               />
             </motion.div>
@@ -365,7 +364,6 @@ export default function App() {
         <div className="flex gap-8 text-[10px] uppercase tracking-widest font-bold">
           <span>Status: Active</span>
           <span>Check-in: Friday 08:00</span>
-          <span>Station: {activeStation}</span>
           <span 
             className="cursor-pointer hover:text-white transition-colors"
             onClick={() => setIsCoach(!isCoach)}
