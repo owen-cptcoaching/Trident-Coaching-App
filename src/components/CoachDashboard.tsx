@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Users, UserPlus, Settings, Activity, ArrowRight, ChevronDown } from 'lucide-react';
+import { Users, UserPlus, Settings, Activity, ArrowRight, ChevronDown, Dumbbell } from 'lucide-react';
 
 interface CoachDashboardProps {
   isHeadCoach: boolean;
@@ -8,7 +8,7 @@ interface CoachDashboardProps {
 }
 
 export const CoachDashboard: React.FC<CoachDashboardProps> = ({ isHeadCoach, onExit }) => {
-  const [activeTab, setActiveTab] = useState<'clients' | 'all-clients' | 'coaches' | 'settings'>('clients');
+  const [activeTab, setActiveTab] = useState<'clients' | 'all-clients' | 'coaches' | 'settings' | 'workout-library'>('clients');
   const [revenuePeriod, setRevenuePeriod] = useState<'monthly' | 'yearly' | 'all-time'>('monthly');
   const [isRevenueExpanded, setIsRevenueExpanded] = useState(false);
   const [isPeriodDropdownOpen, setIsPeriodDropdownOpen] = useState(false);
@@ -87,6 +87,16 @@ export const CoachDashboard: React.FC<CoachDashboardProps> = ({ isHeadCoach, onE
               </button>
             </>
           )}
+
+          <button 
+            onClick={() => setActiveTab('workout-library')}
+            className={`text-left px-4 py-3 text-xs uppercase tracking-widest font-bold font-oswald flex items-center gap-3 transition-colors ${
+              activeTab === 'workout-library' ? 'bg-stone-900 text-white' : 'hover:bg-stone-100'
+            }`}
+          >
+            <Dumbbell size={16} />
+            Workout Library
+          </button>
 
           <button 
             onClick={() => setActiveTab('settings')}
@@ -272,6 +282,18 @@ export const CoachDashboard: React.FC<CoachDashboardProps> = ({ isHeadCoach, onE
                 ) : (
                   <p className="text-stone-500 italic font-serif text-sm">Settings panel coming soon.</p>
                 )}
+              </div>
+            )}
+
+            {activeTab === 'workout-library' && (
+              <div className="space-y-6">
+                <div className="flex items-center border-b border-stone-200 pb-4">
+                  <h2 className="text-xl font-bold uppercase tracking-tight font-oswald">Workout Library</h2>
+                </div>
+                <div className="bg-white border border-stone-200 p-8 text-center">
+                  <Dumbbell size={48} className="mx-auto text-stone-300 mb-4" />
+                  <p className="text-stone-500 italic font-serif text-sm">Workout library coming soon. Build and store templates here.</p>
+                </div>
               </div>
             )}
           </motion.div>

@@ -11,7 +11,7 @@ import { TrainingView } from './components/TrainingView';
 import { NutritionView } from './components/NutritionView';
 import { CoachDashboard } from './components/CoachDashboard';
 import { ClientDashboard } from './components/ClientDashboard';
-import { Activity, Apple, LayoutDashboard, ChevronRight, Lock } from 'lucide-react';
+import { Activity, Apple, LayoutDashboard, ChevronRight, Lock, ArrowRight } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { cn } from './lib/utils';
 import { getStripe } from './lib/stripe';
@@ -27,42 +27,86 @@ export default function App() {
   const [activeTab, setActiveTab] = React.useState<'dashboard' | 'assessment' | 'training' | 'nutrition'>('assessment');
   const [currentView, setCurrentView] = React.useState<'client' | 'coach-dashboard'>('client');
 
-  const [isCoach, setIsCoach] = React.useState(false);
+  const [isCoach, setIsCoach] = React.useState(true);
   const [isHeadCoach, setIsHeadCoach] = React.useState(false);
 
   const [user, setUser] = React.useState<User | null>(null);
   const [isInitializingAuth, setIsInitializingAuth] = React.useState(true);
+  const [isInitializingProfile, setIsInitializingProfile] = React.useState(false);
 
   useEffect(() => {
     const fetchUserProfile = async (userId: string) => {
+      setIsInitializingProfile(true);
       try {
         const { data, error } = await supabase
           .from('profiles')
           .select('role')
           .eq('id', userId)
-          .single();
+          .maybeSingle();
         
         if (error) throw error;
         
+        let isUserCoach = true; // Default to coach
+        let isUserHeadCoach = false;
         if (data) {
           if (data.role === 'coach') {
-            setIsCoach(true);
-            setIsHeadCoach(false);
-            setCurrentView('coach-dashboard');
+            isUserCoach = true;
           } else if (data.role === 'head_coach') {
-            setIsCoach(true);
-            setIsHeadCoach(true);
-            setCurrentView('coach-dashboard');
-          } else {
-            setIsCoach(false);
-            setIsHeadCoach(false);
-            setCurrentView('client');
+            isUserCoach = true;
+            isUserHeadCoach = true;
+          } else if (data.role === 'client') {
+            isUserCoach = false;
           }
         }
+        
+        setIsCoach(isUserCoach);
+        setIsHeadCoach(isUserHeadCoach);
+
+        // Fetch stats and plan for everyone
+        const { data: currentStats } = await supabase
+          .from('user_stats')
+          .select('*')
+          .eq('user_id', userId)
+          .order('created_at', { ascending: false })
+          .limit(1)
+          .maybeSingle();
+
+        if (currentStats) {
+          setStats({
+            age: currentStats.age,
+            weight: currentStats.weight,
+            height: currentStats.height,
+            gender: currentStats.gender as any,
+            activityLevel: currentStats.activity_level as any,
+            goal: currentStats.goal as any,
+            accessCode: undefined, // no need to load this
+          });
+        }
+
+        const { data: currentPlan } = await supabase
+          .from('coaching_plans')
+          .select('*')
+          .eq('user_id', userId)
+          .order('created_at', { ascending: false })
+          .limit(1)
+          .maybeSingle();
+
+        if (currentPlan) {
+          setPlan({
+            trainingProgram: currentPlan.training_program,
+            nutritionPlan: currentPlan.nutrition_plan
+          });
+          setActiveTab('assessment');
+        } else {
+          setActiveTab('assessment');
+        }
+
+        setCurrentView('client'); // Default to client view so they stay on the "assessment / start" page
       } catch (error) {
         console.error("Error fetching profile role:", error);
       } finally {
         setIsInitializingAuth(false);
+        setIsInitializingProfile(false);
       }
     };
 
@@ -83,6 +127,10 @@ export default function App() {
       setUser(currentUser);
       if (currentUser) {
         fetchUserProfile(currentUser.id);
+      } else {
+        setStats(null);
+        setPlan(null);
+        setActiveTab('assessment');
       }
     });
 
@@ -122,10 +170,35 @@ export default function App() {
   }, []);
 
   const handleStatsSubmit = async (newStats: UserStats) => {
+    if (newStats.accessCode !== '1234-5678') {
+      alert('Invalid coach code. Please try again.');
+      return;
+    }
     setIsLoading(true);
     setStats(newStats);
     try {
       const generatedPlan = await generateCoachingPlan(newStats);
+      
+      if (user) {
+        // Save stats
+        await supabase.from('user_stats').insert({
+          user_id: user.id,
+          age: newStats.age,
+          weight: newStats.weight,
+          height: newStats.height,
+          gender: newStats.gender,
+          activity_level: newStats.activityLevel,
+          goal: newStats.goal
+        });
+
+        // Save plan
+        await supabase.from('coaching_plans').insert({
+          user_id: user.id,
+          training_program: generatedPlan.trainingProgram,
+          nutrition_plan: generatedPlan.nutritionPlan
+        });
+      }
+
       setPlan(generatedPlan);
       setActiveTab('dashboard');
     } catch (error) {
@@ -166,7 +239,7 @@ export default function App() {
     setActiveTab('assessment');
   };
 
-  if (isInitializingAuth) {
+  if (isInitializingAuth || isInitializingProfile) {
     return (
       <div className="flex h-screen items-center justify-center bg-[#F9F8F6] font-sans">
         <p className="text-sm font-bold uppercase tracking-widest text-stone-500">Loading...</p>
@@ -193,11 +266,7 @@ export default function App() {
       <header className="px-6 md:px-12 pt-10 pb-6 border-b border-stone-200 flex flex-col md:flex-row justify-between items-baseline gap-6">
         <div 
           className="flex flex-col cursor-pointer hover:opacity-70 transition-opacity" 
-          onClick={() => {
-            if (activeTab === 'assessment' && !plan) return;
-            if (plan) setActiveTab('dashboard');
-            else setActiveTab('assessment');
-          }}
+          onClick={() => setActiveTab('assessment')}
         >
           <h1 className="text-6xl md:text-7xl font-logo tracking-tight font-normal text-stone-900 leading-none">Trident</h1>
           <p className="text-[10px] uppercase tracking-[0.3em] font-bold text-stone-400 mt-2 font-oswald">Elite Performance Coaching</p>
@@ -230,9 +299,11 @@ export default function App() {
           <p className="text-sm font-bold tracking-tight text-stone-800 italic uppercase font-oswald cursor-pointer hover:text-stone-500 transition-colors" onClick={() => {
             if (plan) {
               setActiveTab('dashboard');
+            } else if (isCoach) {
+              setCurrentView('coach-dashboard');
             }
           }}>
-            My Dashboard
+            {plan ? 'My Dashboard' : (isCoach ? 'Open Dashboard' : 'Program Start')}
           </p>
           <p className="text-xs font-display italic text-stone-400 font-oswald">Peak Intensity Block / 2026</p>
         </div>
@@ -248,17 +319,64 @@ export default function App() {
               exit={{ opacity: 0, scale: 1.02 }}
               className="space-y-12"
             >
-              <div className="text-center max-w-3xl mx-auto mb-16">
-                <h1 className="text-7xl md:text-9xl font-display font-black uppercase tracking-tighter leading-[0.85] mb-8 italic">
-                  Evolve Your <br />
-                  <span className="text-stone-300 font-holigas">Physical Limit</span>
-                </h1>
-                <p className="text-xl text-stone-500 font-serif italic leading-relaxed">
-                  Trident combines elite coaching expertise with advanced AI tools to deliver a training and nutrition system that adapts to your unique biology.
-                </p>
-              </div>
+              {plan ? (
+                <div className="flex flex-col items-center justify-center py-20">
+                  <div className="text-center max-w-3xl mx-auto mb-12">
+                    <h1 className="text-6xl md:text-8xl font-display font-black uppercase tracking-tighter leading-[0.85] mb-6 italic">
+                      Welcome Back to <br />
+                      <span className="text-stone-300 font-holigas">Trident</span>
+                    </h1>
+                    <p className="text-lg text-stone-500 font-serif italic max-w-xl mx-auto">
+                      Your highly personalized elite physical performance program is active. 
+                    </p>
+                  </div>
+                  <button
+                    onClick={() => setActiveTab('dashboard')}
+                    className="w-full max-w-md bg-stone-900 text-white py-6 font-bold uppercase tracking-[0.3em] text-sm flex items-center justify-center gap-2 hover:bg-stone-800 transition-all cursor-pointer font-oswald"
+                  >
+                    Open Program <ArrowRight size={16} />
+                  </button>
+                </div>
+              ) : (
+                <>
+                  <div className="text-center max-w-3xl mx-auto mb-16">
+                    {isCoach ? (
+                      <>
+                        <h1 className="text-6xl md:text-8xl font-display font-black uppercase tracking-tighter leading-[0.85] mb-6 italic">
+                          Welcome Back to <br />
+                          <span className="text-stone-300 font-holigas">Trident</span>
+                        </h1>
+                        <p className="text-lg text-stone-500 font-serif italic max-w-xl mx-auto">
+                          Access your coach dashboard to manage clients, programs, and performance data.
+                        </p>
+                      </>
+                    ) : (
+                      <>
+                        <h1 className="text-7xl md:text-9xl font-display font-black uppercase tracking-tighter leading-[0.85] mb-8 italic">
+                          Evolve Your <br />
+                          <span className="text-stone-300 font-holigas">Physical Limits</span>
+                        </h1>
+                        <p className="text-xl text-stone-500 font-serif italic leading-relaxed">
+                          Trident combines elite coaching expertise with advanced AI tools to deliver a training and nutrition system that adapts to your unique biology.
+                        </p>
+                      </>
+                    )}
+                  </div>
 
-              <StatsForm onSubmit={handleStatsSubmit} isLoading={isLoading} />
+                  {isCoach ? (
+                    <div className="flex flex-col items-center justify-center">
+                      <button
+                        onClick={() => setCurrentView('coach-dashboard')}
+                        className="w-full max-w-md bg-stone-900 text-white py-6 font-bold uppercase tracking-[0.3em] text-sm flex items-center justify-center gap-2 hover:bg-stone-800 transition-all cursor-pointer font-oswald"
+                      >
+                        Open Dashboard <ArrowRight size={16} />
+                      </button>
+                    </div>
+                  ) : (
+                    <StatsForm onSubmit={handleStatsSubmit} isLoading={isLoading} />
+                  )}
+                </>
+              )}
             </motion.div>
           )}
 
@@ -284,12 +402,6 @@ export default function App() {
                     ))}
                   </div>
                   <div className="flex gap-4">
-                    <button 
-                      onClick={() => setActiveTab('assessment')}
-                      className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest hover:text-stone-900 transition-colors"
-                    >
-                      Edit Profile <ChevronRight size={12} />
-                    </button>
                     <button 
                       onClick={handleCheckout}
                       disabled={isCheckingOut}
@@ -362,13 +474,23 @@ export default function App() {
       {/* Footer / Status Bar */}
       <footer className="h-14 bg-stone-900 text-stone-400 flex items-center px-12 justify-between">
         <div className="flex gap-8 text-[10px] uppercase tracking-widest font-bold">
-          <span>Status: Active</span>
-          <span>Check-in: Friday 08:00</span>
           <span 
             className="cursor-pointer hover:text-white transition-colors"
-            onClick={() => setIsCoach(!isCoach)}
+            onClick={() => {
+              if (isCoach) {
+                setIsCoach(false);
+                setPlan({
+                  trainingProgram: { blocks: [], warmup: [], cooldown: [] },
+                  nutritionPlan: { dailyTargets: { calories: 2000, protein: 150, carbs: 200, fat: 60 }, meals: [], recommendations: [] }
+                });
+              } else if (plan) {
+                reset();
+              } else {
+                setIsCoach(true);
+              }
+            }}
           >
-            Role: {isCoach ? 'Coach' : 'Client'}
+            Role: {isCoach ? 'Coach' : (plan ? 'Recurring Client' : 'New Client')}
           </span>
           <span 
             className="cursor-pointer hover:text-white transition-colors"

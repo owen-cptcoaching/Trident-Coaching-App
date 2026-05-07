@@ -5,6 +5,7 @@ export interface UserStats {
   gender: 'male' | 'female' | 'other';
   activityLevel: 'sedentary' | 'lightly_active' | 'moderately_active' | 'very_active' | 'extra_active';
   goal: 'weight_loss' | 'muscle_gain' | 'maintenance' | 'athletic_performance';
+  accessCode?: string;
 }
 
 export interface Exercise {

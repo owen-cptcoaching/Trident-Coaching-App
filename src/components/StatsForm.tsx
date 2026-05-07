@@ -171,33 +171,21 @@ export const StatsForm: React.FC<StatsFormProps> = ({ onSubmit, isLoading }) => 
             ]}
             onChange={handleSelectChange}
           />
-          <CustomSelect
-            name="activityLevel"
-            label={<><Activity size={12} /> Activity Level</>}
-            value={formData.activityLevel}
-            options={[
-              { label: 'Sedentary', value: 'sedentary' },
-              { label: 'Lightly Active', value: 'lightly_active' },
-              { label: 'Moderately Active', value: 'moderately_active' },
-              { label: 'Very Active', value: 'very_active' },
-              { label: 'Extra Active', value: 'extra_active' }
-            ]}
-            onChange={handleSelectChange}
-          />
+          <div className="space-y-2 border-b border-stone-100 pb-4">
+            <label className="text-[10px] font-bold uppercase tracking-[0.2em] text-stone-400 flex items-center gap-2 font-oswald">
+              Access Code
+            </label>
+            <input
+              type="text"
+              name="accessCode"
+              value={formData.accessCode || ''}
+              onChange={handleChange}
+              placeholder="Enter Coach Code"
+              className="w-full bg-transparent border-none p-0 focus:ring-0 outline-none text-xl font-oswald uppercase"
+              required
+            />
+          </div>
         </div>
-
-        <CustomSelect
-          name="goal"
-          label={<><Target size={12} /> Primary Goal</>}
-          value={formData.goal}
-          options={[
-            { label: 'Weight Loss', value: 'weight_loss' },
-            { label: 'Muscle Gain', value: 'muscle_gain' },
-            { label: 'Maintenance', value: 'maintenance' },
-            { label: 'Athletic Performance', value: 'athletic_performance' }
-          ]}
-          onChange={handleSelectChange}
-        />
 
         <button
           type="submit"
