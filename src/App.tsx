@@ -255,7 +255,10 @@ export default function App() {
     return (
       <CoachDashboard 
         isHeadCoach={isHeadCoach} 
-        onExit={() => setCurrentView('client')} 
+        onExit={() => {
+          setCurrentView('client');
+          setActiveTab('assessment');
+        }} 
       />
     );
   }
@@ -265,8 +268,12 @@ export default function App() {
       {/* Header */}
       <header className="px-6 md:px-12 pt-10 pb-6 border-b border-stone-200 flex flex-col md:flex-row justify-between items-baseline gap-6">
         <div 
-          className="flex flex-col cursor-pointer hover:opacity-70 transition-opacity" 
-          onClick={() => setActiveTab('assessment')}
+          className={`flex flex-col ${activeTab === 'assessment' ? '' : 'cursor-pointer hover:opacity-70 transition-opacity'}`} 
+          onClick={() => {
+            if (activeTab !== 'assessment') {
+              setActiveTab('assessment');
+            }
+          }}
         >
           <h1 className="text-6xl md:text-7xl font-logo tracking-tight font-normal text-stone-900 leading-none">Trident</h1>
           <p className="text-[10px] uppercase tracking-[0.3em] font-bold text-stone-400 mt-2 font-oswald">Elite Performance Coaching</p>
@@ -392,9 +399,9 @@ export default function App() {
                   <div className="flex items-center gap-8 overflow-x-auto no-scrollbar">
                     {[
                       { label: 'Weight', val: `${stats?.weight}lbs` },
-                      { label: 'Goal', val: stats?.goal.replace('_', ' ') },
-                      { label: 'Activity', val: stats?.activityLevel.replace('_', ' ') }
-                    ].map((item) => (
+                      stats?.goal ? { label: 'Goal', val: stats?.goal.replace('_', ' ') } : null,
+                      stats?.activityLevel ? { label: 'Activity', val: stats?.activityLevel.replace('_', ' ') } : null
+                    ].filter(Boolean).map((item: any) => (
                       <div key={item.label} className="flex items-baseline gap-2 shrink-0">
                         <span className="text-[10px] font-bold uppercase tracking-widest">{item.label}</span>
                         <span className="font-mono text-sm text-stone-900 font-bold uppercase">{item.val}</span>
@@ -407,7 +414,7 @@ export default function App() {
                       disabled={isCheckingOut}
                       className="flex items-center gap-2 text-[10px] bg-stone-900 text-white px-4 py-2 font-bold uppercase tracking-widest hover:bg-stone-800 transition-colors disabled:opacity-50"
                     >
-                      <Lock size={12} /> {isCheckingOut ? 'Loading...' : 'Purchase Plan'}
+                      <Lock size={12} /> {isCheckingOut ? 'Loading...' : 'Add Ons'}
                     </button>
                   </div>
                 </div>
@@ -435,9 +442,9 @@ export default function App() {
                 <div className="flex items-center gap-8 overflow-x-auto no-scrollbar">
                   {[
                     { label: 'Weight', val: `${stats?.weight}lbs` },
-                    { label: 'Goal', val: stats?.goal.replace('_', ' ') },
-                    { label: 'Activity', val: stats?.activityLevel.replace('_', ' ') }
-                  ].map((item) => (
+                    stats?.goal ? { label: 'Goal', val: stats?.goal.replace('_', ' ') } : null,
+                    stats?.activityLevel ? { label: 'Activity', val: stats?.activityLevel.replace('_', ' ') } : null
+                  ].filter(Boolean).map((item: any) => (
                     <div key={item.label} className="flex items-baseline gap-2 shrink-0">
                       <span className="text-[10px] font-bold uppercase tracking-widest">{item.label}</span>
                       <span className="font-mono text-sm text-stone-900 font-bold uppercase">{item.val}</span>
@@ -456,7 +463,7 @@ export default function App() {
                     disabled={isCheckingOut}
                     className="flex items-center gap-2 text-[10px] bg-stone-900 text-white px-4 py-2 font-bold uppercase tracking-widest hover:bg-stone-800 transition-colors disabled:opacity-50"
                   >
-                    <Lock size={12} /> {isCheckingOut ? 'Loading...' : 'Purchase Plan'}
+                    <Lock size={12} /> {isCheckingOut ? 'Loading...' : 'Add Ons'}
                   </button>
                 </div>
               </div>

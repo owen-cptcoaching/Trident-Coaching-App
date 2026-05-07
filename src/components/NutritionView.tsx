@@ -43,7 +43,7 @@ export const NutritionView: React.FC<NutritionViewProps> = ({ plan }) => {
       <div className="space-y-12">
         <h4 className="text-[10px] font-black uppercase tracking-[0.4em] text-stone-300 border-b border-stone-100 pb-4">Scheduled Feedings</h4>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-12">
-          {plan.meals.map((meal, idx) => (
+          {plan?.meals?.map((meal, idx) => (
             <motion.div
               key={idx}
               initial={{ opacity: 0, scale: 0.95 }}
@@ -63,7 +63,7 @@ export const NutritionView: React.FC<NutritionViewProps> = ({ plan }) => {
 
               <div className="pl-12 space-y-4">
                   <ul className="space-y-2 mb-6 min-h-[100px]">
-                      {meal.ingredients.map((ing, i) => (
+                      {meal.ingredients?.map((ing, i) => (
                           <li key={i} className="text-xs text-stone-500 font-serif italic border-b border-stone-50 pb-1">
                               {ing}
                           </li>
@@ -91,7 +91,7 @@ export const NutritionView: React.FC<NutritionViewProps> = ({ plan }) => {
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
             <ul className="space-y-6">
-                {plan.recommendations.map((rec, i) => (
+                {plan?.recommendations?.map((rec, i) => (
                     <li key={i} className="flex gap-6 items-start">
                         <span className="text-xs font-black text-stone-200 uppercase tracking-widest mt-1">Ref_{i+1}</span>
                         <p className="text-stone-600 font-serif italic italic leading-relaxed text-sm">

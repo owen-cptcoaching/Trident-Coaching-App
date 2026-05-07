@@ -85,11 +85,11 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({
                 </div>
               ))}
               
-              {paddingDays.map(padding => (
+              {paddingDays?.map(padding => (
                 <div key={`pad-${padding}`} className="w-full aspect-square bg-stone-50/50" />
               ))}
               
-              {days.map(day => {
+              {days?.map(day => {
                 const isToday = day === today.getDate();
                 const isPast = day < today.getDate();
                 const hasWorkout = day % 2 === 0; // Fake some workouts

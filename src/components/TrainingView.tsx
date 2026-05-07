@@ -75,7 +75,7 @@ export const TrainingView: React.FC<TrainingViewProps> = ({ program, isCoach = f
       </div>
 
       <div className="grid grid-cols-1 gap-20">
-        {program.schedule.map((day, dayIdx) => (
+        {program?.schedule?.map((day, dayIdx) => (
           <motion.div
             key={dayIdx}
             initial={{ opacity: 0, y: 20 }}
@@ -105,7 +105,7 @@ export const TrainingView: React.FC<TrainingViewProps> = ({ program, isCoach = f
                     </tr>
                   </thead>
                   <tbody className="bg-white">
-                    {day.exercises.length > 0 ? (
+                    {(day.exercises?.length || 0) > 0 ? (
                       day.exercises.map((ex, exIdx) => (
                         <tr 
                           key={exIdx} 
@@ -168,7 +168,7 @@ export const TrainingView: React.FC<TrainingViewProps> = ({ program, isCoach = f
               </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-6">
-                {day.exercises.length > 0 ? (
+                {(day.exercises?.length || 0) > 0 ? (
                   day.exercises.map((ex, exIdx) => (
                     <div
                       key={exIdx}

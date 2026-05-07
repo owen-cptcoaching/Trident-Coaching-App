@@ -8,7 +8,7 @@ interface CoachDashboardProps {
 }
 
 export const CoachDashboard: React.FC<CoachDashboardProps> = ({ isHeadCoach, onExit }) => {
-  const [activeTab, setActiveTab] = useState<'clients' | 'all-clients' | 'coaches' | 'settings' | 'workout-library'>('clients');
+  const [activeTab, setActiveTab] = useState<'clients' | 'all-clients' | 'coaches' | 'settings' | 'workout-library' | 'add-client'>('clients');
   const [revenuePeriod, setRevenuePeriod] = useState<'monthly' | 'yearly' | 'all-time'>('monthly');
   const [isRevenueExpanded, setIsRevenueExpanded] = useState(false);
   const [isPeriodDropdownOpen, setIsPeriodDropdownOpen] = useState(false);
@@ -37,19 +37,15 @@ export const CoachDashboard: React.FC<CoachDashboardProps> = ({ isHeadCoach, onE
   return (
     <div className="min-h-screen bg-stone-50 flex flex-col font-sans text-stone-900">
       <header className="px-6 md:px-12 pt-10 pb-6 border-b border-stone-200 flex flex-col md:flex-row justify-between items-baseline gap-6 bg-white">
-        <div className="flex flex-col">
+        <div 
+          className="flex flex-col cursor-pointer hover:opacity-70 transition-opacity"
+          onClick={onExit}
+        >
           <h1 className="text-6xl md:text-7xl font-logo tracking-tight font-normal text-stone-900 leading-none">Trident</h1>
           <p className="text-[10px] uppercase tracking-[0.3em] font-bold text-stone-400 mt-2 font-oswald">
             {isHeadCoach ? 'Head Coach Dashboard' : 'Coach Dashboard'}
           </p>
         </div>
-        
-        <button 
-          onClick={onExit}
-          className="text-xs uppercase tracking-widest font-bold underline hover:text-stone-500 transition-colors"
-        >
-          Return to Client View
-        </button>
       </header>
 
       <main className="flex-1 p-6 md:p-12 max-w-7xl mx-auto w-full flex flex-col md:flex-row gap-12">
@@ -124,13 +120,13 @@ export const CoachDashboard: React.FC<CoachDashboardProps> = ({ isHeadCoach, onE
                   <h2 className="text-xl font-bold uppercase tracking-tight font-oswald">
                     {activeTab === 'all-clients' ? 'All Clients' : 'Client Overview'}
                   </h2>
-                  <button className="bg-stone-900 text-white px-4 py-2 text-[10px] uppercase tracking-widest font-bold hover:bg-stone-800 transition-colors">
+                  <button onClick={() => setActiveTab('add-client')} className="bg-stone-900 text-white px-4 py-2 text-[10px] uppercase tracking-widest font-bold hover:bg-stone-800 transition-colors">
                     Add Client
                   </button>
                 </div>
                 
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {displayedClients.map(client => (
+                  {displayedClients?.map(client => (
                     <div key={client.id} className="bg-white border border-stone-200 p-6 flex flex-col group hover:border-stone-400 transition-colors cursor-pointer">
                       <div className="flex justify-between items-start mb-8">
                         <h3 className="font-bold text-lg">{client.name}</h3>
@@ -175,7 +171,7 @@ export const CoachDashboard: React.FC<CoachDashboardProps> = ({ isHeadCoach, onE
                       </tr>
                     </thead>
                     <tbody className="text-sm">
-                      {coaches.map(coach => (
+                      {coaches?.map(coach => (
                         <tr key={coach.id} className="border-b border-stone-100 last:border-0 hover:bg-stone-50 transition-colors">
                           <td className="px-6 py-4 font-bold">{coach.name}</td>
                           <td className="px-6 py-4 italic font-serif text-stone-500">{coach.specialization}</td>
@@ -293,6 +289,79 @@ export const CoachDashboard: React.FC<CoachDashboardProps> = ({ isHeadCoach, onE
                 <div className="bg-white border border-stone-200 p-8 text-center">
                   <Dumbbell size={48} className="mx-auto text-stone-300 mb-4" />
                   <p className="text-stone-500 italic font-serif text-sm">Workout library coming soon. Build and store templates here.</p>
+                </div>
+              </div>
+            )}
+
+            {activeTab === 'add-client' && (
+              <div className="space-y-6">
+                <div className="flex flex-col gap-6 border-b border-stone-200 pb-4">
+                  <div className="flex items-center">
+                    <button 
+                      onClick={() => setActiveTab('clients')}
+                      className="text-xs uppercase tracking-widest font-bold text-stone-500 hover:text-stone-900 transition-colors flex items-center gap-2"
+                    >
+                      <ArrowRight size={14} className="rotate-180" />
+                      Back to Dashboard
+                    </button>
+                  </div>
+                  <h2 className="text-xl font-bold uppercase tracking-tight font-oswald">Add New Client</h2>
+                </div>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                  {/* Send Sign-up Form */}
+                  <div className="bg-white border border-stone-200 p-8 flex flex-col items-start h-full">
+                    <h3 className="text-lg font-bold font-oswald uppercase tracking-tight mb-2">Send Sign Up Link</h3>
+                    <p className="text-stone-500 font-serif italic text-sm mb-8">Send an invitation containing payment info, DocuSign link, and the initial onboarding questionnaire.</p>
+                    
+                    <div className="w-full space-y-4 mt-auto">
+                      <div className="space-y-2">
+                        <label className="text-[10px] font-bold uppercase tracking-widest text-stone-400">Name</label>
+                        <input className="w-full bg-stone-50 border border-stone-200 px-4 py-3 text-sm focus:outline-none focus:border-stone-900 transition-colors" placeholder="e.g. John Doe" />
+                      </div>
+                      <div className="space-y-2">
+                        <label className="text-[10px] font-bold uppercase tracking-widest text-stone-400">Email Address</label>
+                        <input type="email" className="w-full bg-stone-50 border border-stone-200 px-4 py-3 text-sm focus:outline-none focus:border-stone-900 transition-colors" placeholder="john@example.com" />
+                      </div>
+                      <button className="w-full bg-stone-900 text-white mt-4 py-4 text-xs font-bold uppercase tracking-widest hover:bg-stone-800 transition-colors">
+                        Send Invitation
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Manual Entry */}
+                  <div className="bg-white border border-stone-200 p-8 flex flex-col items-start h-full">
+                    <h3 className="text-lg font-bold font-oswald uppercase tracking-tight mb-2">Manual Registration</h3>
+                    <p className="text-stone-500 font-serif italic text-sm mb-8">Create the profile manually if the client has already signed up and completed payment outside the platform.</p>
+                    
+                    <div className="w-full space-y-4 mt-auto">
+                      <div className="space-y-2">
+                        <label className="text-[10px] font-bold uppercase tracking-widest text-stone-400">Full Name</label>
+                        <input className="w-full bg-stone-50 border border-stone-200 px-4 py-3 text-sm focus:outline-none focus:border-stone-900 transition-colors" placeholder="e.g. Jane Doe" />
+                      </div>
+                      <div className="space-y-2">
+                        <label className="text-[10px] font-bold uppercase tracking-widest text-stone-400">Email Address</label>
+                        <input type="email" className="w-full bg-stone-50 border border-stone-200 px-4 py-3 text-sm focus:outline-none focus:border-stone-900 transition-colors" placeholder="jane@example.com" />
+                      </div>
+                      <div className="space-y-2">
+                        <label className="text-[10px] font-bold uppercase tracking-widest text-stone-400">Phone Number</label>
+                        <input type="tel" className="w-full bg-stone-50 border border-stone-200 px-4 py-3 text-sm focus:outline-none focus:border-stone-900 transition-colors" placeholder="(555) 555-5555" />
+                      </div>
+                      <div className="space-y-4 pt-4 border-t border-stone-100">
+                        <label className="text-[10px] font-bold uppercase tracking-widest text-stone-400">Payment Information</label>
+                        <div className="space-y-2">
+                          <input className="w-full bg-stone-50 border border-stone-200 px-4 py-3 text-sm focus:outline-none focus:border-stone-900 transition-colors" placeholder="Card Number" />
+                        </div>
+                        <div className="grid grid-cols-2 gap-4">
+                          <input className="w-full bg-stone-50 border border-stone-200 px-4 py-3 text-sm focus:outline-none focus:border-stone-900 transition-colors" placeholder="MM/YY" />
+                          <input className="w-full bg-stone-50 border border-stone-200 px-4 py-3 text-sm focus:outline-none focus:border-stone-900 transition-colors" placeholder="CVC" />
+                        </div>
+                      </div>
+                      <button className="w-full bg-stone-900 text-white mt-4 py-4 text-xs font-bold uppercase tracking-widest hover:bg-stone-800 transition-colors">
+                        Create Profile
+                      </button>
+                    </div>
+                  </div>
                 </div>
               </div>
             )}
