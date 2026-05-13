@@ -11,6 +11,8 @@ export function AuthScreen({ onSuccess }: AuthScreenProps) {
   const [error, setError] = useState<string | null>(null);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [username, setUsername] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [isSignUp, setIsSignUp] = useState(false);
 
   const handleEmailAuth = async (e: React.FormEvent) => {
@@ -19,9 +21,17 @@ export function AuthScreen({ onSuccess }: AuthScreenProps) {
     setError(null);
     try {
       if (isSignUp) {
+        if (password !== confirmPassword) {
+          throw new Error("Passwords do not match.");
+        }
         const { data, error: signUpError } = await supabase.auth.signUp({
           email,
           password,
+          options: {
+            data: {
+              username: username
+            }
+          }
         });
         if (signUpError) throw signUpError;
         if (data.user && data.user.identities && data.user.identities.length === 0) {
@@ -97,6 +107,18 @@ export function AuthScreen({ onSuccess }: AuthScreenProps) {
         )}
 
         <form onSubmit={handleEmailAuth} className="space-y-4 mb-6">
+          {isSignUp && (
+            <div className="space-y-2">
+              <input
+                type="text"
+                placeholder="Username"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                className="w-full px-4 py-3 bg-stone-50 border border-stone-200 text-sm focus:outline-none focus:border-stone-900 transition-colors"
+                required
+              />
+            </div>
+          )}
           <div className="space-y-2">
             <input
               type="email"
@@ -117,9 +139,21 @@ export function AuthScreen({ onSuccess }: AuthScreenProps) {
               required
             />
           </div>
+          {isSignUp && (
+            <div className="space-y-2">
+              <input
+                type="password"
+                placeholder="Re-enter password"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                className="w-full px-4 py-3 bg-stone-50 border border-stone-200 text-sm focus:outline-none focus:border-stone-900 transition-colors"
+                required
+              />
+            </div>
+          )}
           <button
             type="submit"
-            disabled={isLoading || !email || !password}
+            disabled={isLoading || !email || !password || (isSignUp && (!username || !confirmPassword || password !== confirmPassword))}
             className="w-full flex items-center justify-center gap-3 bg-stone-900 text-white px-6 py-4 text-xs font-bold uppercase tracking-widest hover:bg-stone-800 transition-colors disabled:opacity-50"
           >
             {isLoading ? 'Loading...' : (isSignUp ? 'Sign Up' : 'Sign In')}

@@ -41,7 +41,7 @@ export default function App() {
   >("client");
   const [isQuickView, setIsQuickView] = React.useState(false);
 
-  const [isCoach, setIsCoach] = React.useState(true);
+  const [isCoach, setIsCoach] = React.useState(false);
   const [isHeadCoach, setIsHeadCoach] = React.useState(false);
 
   const [user, setUser] = React.useState<User | null>(null);
@@ -50,29 +50,36 @@ export default function App() {
     React.useState(false);
 
   useEffect(() => {
-    const fetchUserProfile = async (userId: string) => {
+    const fetchUserProfile = async (userId: string, email?: string) => {
       setIsInitializingProfile(true);
+      let isUserCoach = false;
       try {
-        const { data, error } = await supabase
-          .from("profiles")
-          .select("role")
-          .eq("id", userId)
-          .maybeSingle();
+        const normalizedEmail = email?.toLowerCase().trim();
+        isUserCoach = normalizedEmail === "owen.cpt1@gmail.com";
+        let isUserHeadCoach = normalizedEmail === "owen.cpt1@gmail.com";
 
-        if (error) throw error;
+        try {
+          const { data, error } = await supabase
+            .from("profiles")
+            .select("role")
+            .eq("id", userId)
+            .maybeSingle();
 
-        let isUserCoach = true; // Default to coach
-        let isUserHeadCoach = false;
-        if (data) {
-          if (data.role === "coach") {
-            isUserCoach = true;
-          } else if (data.role === "head_coach") {
-            isUserCoach = true;
-            isUserHeadCoach = true;
-          } else if (data.role === "client") {
-            isUserCoach = false;
+          if (!error && data) {
+            if (data.role === "coach") {
+              isUserCoach = true;
+            } else if (data.role === "head_coach") {
+              isUserCoach = true;
+              isUserHeadCoach = true;
+            } else if (data.role === "client" && normalizedEmail !== "owen.cpt1@gmail.com") {
+              isUserCoach = false;
+            }
           }
+        } catch (dbError) {
+          console.error("Supabase profile fetch error:", dbError);
         }
+
+        console.log("User email:", email, "isCoach:", isUserCoach);
 
         setIsCoach(isUserCoach);
         setIsHeadCoach(isUserHeadCoach);
@@ -130,12 +137,12 @@ export default function App() {
           setActiveTab("assessment");
         }
 
-        setCurrentView("client"); // Default to client view so they stay on the "assessment / start" page
       } catch (error) {
         console.error("Error fetching profile role:", error);
       } finally {
         setIsInitializingAuth(false);
         setIsInitializingProfile(false);
+        setCurrentView(isUserCoach ? "coach-dashboard" : "client");
       }
     };
 
@@ -144,7 +151,7 @@ export default function App() {
       const currentUser = session?.user ?? null;
       setUser(currentUser);
       if (currentUser) {
-        fetchUserProfile(currentUser.id);
+        fetchUserProfile(currentUser.id, currentUser.email);
       } else {
         setIsInitializingAuth(false);
       }
@@ -157,7 +164,7 @@ export default function App() {
       const currentUser = session?.user ?? null;
       setUser(currentUser);
       if (currentUser) {
-        fetchUserProfile(currentUser.id);
+        fetchUserProfile(currentUser.id, currentUser.email);
       } else {
         setStats(null);
         setPlan(null);
@@ -176,7 +183,7 @@ export default function App() {
           const currentUser = session?.user ?? null;
           setUser(currentUser);
           if (currentUser) {
-            fetchUserProfile(currentUser.id);
+            fetchUserProfile(currentUser.id, currentUser.email);
           }
         });
       }
@@ -420,52 +427,24 @@ export default function App() {
               ) : (
                 <>
                   <div className="text-center max-w-3xl mx-auto mb-16">
-                    {isCoach ? (
-                      <>
-                        <h1 className="text-6xl md:text-8xl font-display font-black uppercase tracking-tighter leading-[0.85] mb-6 italic">
-                          Welcome Back to <br />
-                          <span className="text-stone-300 font-holigas">
-                            Trident
-                          </span>
-                        </h1>
-                        <p className="text-lg text-stone-500 font-serif italic max-w-xl mx-auto">
-                          Access your coach dashboard to manage clients,
-                          programs, and performance data.
-                        </p>
-                      </>
-                    ) : (
-                      <>
-                        <h1 className="text-7xl md:text-9xl font-display font-black uppercase tracking-tighter leading-[0.85] mb-8 italic">
-                          Evolve Your <br />
-                          <span className="text-stone-300 font-holigas">
-                            Physical Limits
-                          </span>
-                        </h1>
-                        <p className="text-xl text-stone-500 font-serif italic leading-relaxed">
-                          Trident combines elite coaching expertise with
-                          advanced AI tools to deliver a training and nutrition
-                          system that adapts to your unique biology.
-                        </p>
-                      </>
-                    )}
+                    <h1 className="text-7xl md:text-9xl font-display font-black uppercase tracking-tighter leading-[0.85] mb-8 italic">
+                      Evolve Your <br />
+                      <span className="text-stone-300 font-holigas">
+                        Physical Limits
+                      </span>
+                    </h1>
+                    <p className="text-xl text-stone-500 font-serif italic leading-relaxed">
+                      Trident combines elite coaching expertise with
+                      advanced AI tools to deliver a training and nutrition
+                      system that adapts to your unique biology.
+                    </p>
                   </div>
 
-                  {isCoach ? (
-                    <div className="flex flex-col items-center justify-center">
-                      <button
-                        onClick={() => setCurrentView("coach-dashboard")}
-                        className="w-full max-w-md bg-stone-900 text-white py-6 font-bold uppercase tracking-[0.3em] text-sm flex items-center justify-center gap-2 hover:bg-stone-800 transition-all cursor-pointer font-oswald"
-                      >
-                        Open Dashboard <ArrowRight size={16} />
-                      </button>
-                    </div>
-                  ) : (
-                    <StatsForm
-                      onSubmit={handleStatsSubmit}
-                      isLoading={isLoading}
-                      onNoCodeClick={() => setActiveTab("no-code")}
-                    />
-                  )}
+                  <StatsForm
+                    onSubmit={handleStatsSubmit}
+                    isLoading={isLoading}
+                    onNoCodeClick={() => setActiveTab("no-code")}
+                  />
                 </>
               )}
             </motion.div>
@@ -720,111 +699,28 @@ export default function App() {
       {/* Footer / Status Bar */}
       <footer className="h-14 bg-stone-900 text-stone-400 flex items-center px-12 justify-between">
         <div className="flex gap-8 text-[10px] uppercase tracking-widest font-bold">
-          <span
+          <span 
             className="cursor-pointer hover:text-white transition-colors"
-            onClick={() => {
-              if (isCoach) {
-                setIsCoach(false);
-                setPlan({
-                  trainingProgram: {
-                    title: "Peak Performance Block",
-                    description:
-                      "An intensive 4-week block optimizing maximal force production.",
-                    schedule: [
-                      {
-                        day: "Day 1",
-                        focus: "Lower Body Force",
-                        exercises: [
-                          {
-                            name: "Safety Bar Squat",
-                            sets: 4,
-                            reps: "3-5",
-                            rest: "180s",
-                            notes: "RPE 8",
-                          },
-                          {
-                            name: "Romanian Deadlift",
-                            sets: 3,
-                            reps: "8",
-                            rest: "90s",
-                            notes: "Focus on stretch",
-                          },
-                        ],
-                      },
-                      {
-                        day: "Day 2",
-                        focus: "Upper Body Power",
-                        exercises: [
-                          {
-                            name: "Bench Press",
-                            sets: 4,
-                            reps: "3-5",
-                            rest: "180s",
-                            notes: "Explosive concentric",
-                          },
-                          {
-                            name: "Weighted Pull-ups",
-                            sets: 3,
-                            reps: "6-8",
-                            rest: "90s",
-                            notes: "Full ROM",
-                          },
-                        ],
-                      },
-                    ],
-                  },
-                  nutritionPlan: {
-                    title: "Hypertrophy Nutrition",
-                    dailyCalories: 2800,
-                    macros: { protein: 180, carbs: 300, fat: 80 },
-                    meals: [
-                      {
-                        name: "Breakfast",
-                        time: "08:00 AM",
-                        calories: 600,
-                        protein: 40,
-                        carbs: 60,
-                        fat: 20,
-                        ingredients: ["Oats", "Whey Protein", "Almonds"],
-                      },
-                      {
-                        name: "Post-Workout",
-                        time: "01:00 PM",
-                        calories: 500,
-                        protein: 50,
-                        carbs: 70,
-                        fat: 5,
-                        ingredients: [
-                          "Chicken Breast",
-                          "White Rice",
-                          "Spinach",
-                        ],
-                      },
-                    ],
-                    recommendations: ["Stay hydrated", "Sleep 8 hours"],
-                  },
-                });
-              } else if (plan) {
-                reset();
-              } else {
-                setIsCoach(true);
-              }
-            }}
+            onClick={() => setIsCoach(!isCoach)}
           >
             Role: {isCoach ? "Coach" : plan ? "Recurring Client" : "New Client"}
           </span>
-          <span
-            className="cursor-pointer hover:text-white transition-colors"
-            onClick={() => setIsHeadCoach(!isHeadCoach)}
-          >
-            Type: {isHeadCoach ? "Head Coach" : "Regular Coach"}
-          </span>
-          <span
-            className="cursor-pointer hover:text-white transition-colors underline"
-            onClick={() => setCurrentView("coach-dashboard")}
-          >
-            Open Dashboard
-          </span>
+          {isCoach && (
+            <span 
+              className="cursor-pointer hover:text-white transition-colors"
+              onClick={() => setIsHeadCoach(!isHeadCoach)}
+            >
+              Type: {isHeadCoach ? "Head Coach" : "Regular Coach"}
+            </span>
+          )}
+          {isCoach && (
+            <span
+              className="cursor-pointer hover:text-white transition-colors underline"
+              onClick={() => setCurrentView("coach-dashboard")}
+            >
+              Open Dashboard
+            </span>
+          )}
           <span
             className="cursor-pointer hover:text-red-400 text-stone-500 transition-colors underline"
             onClick={() => supabase.auth.signOut()}
