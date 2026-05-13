@@ -428,7 +428,7 @@ export default function App() {
                 <>
                   <div className="text-center max-w-3xl mx-auto mb-16">
                     <h1 className="text-7xl md:text-9xl font-display font-black uppercase tracking-tighter leading-[0.85] mb-8 italic">
-                      Evolve Your <br />
+                      Elevate Your <br />
                       <span className="text-stone-300 font-holigas">
                         Physical Limits
                       </span>

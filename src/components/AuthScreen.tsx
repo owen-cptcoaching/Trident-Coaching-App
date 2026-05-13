@@ -30,7 +30,8 @@ export function AuthScreen({ onSuccess }: AuthScreenProps) {
           options: {
             data: {
               username: username
-            }
+            },
+            emailRedirectTo: "https://trident-coaching-app.vercel.app"
           }
         });
         if (signUpError) throw signUpError;

@@ -11,6 +11,18 @@ create table public.profiles (
   created_at timestamp with time zone default timezone('utc'::text, now()) not null
 );
 
+-- HELPER FUNCTIONS FOR RLS
+create or replace function public.get_user_role()
+returns text as $$
+  select role from public.profiles where id = auth.uid();
+$$ language sql security definer;
+
+create or replace function public.is_head_coach()
+returns boolean as $$
+  select public.get_user_role() = 'head_coach';
+$$ language sql security definer;
+
+
 -- USER STATS
 create table public.user_stats (
   id uuid default uuid_generate_v4() primary key,
@@ -58,9 +70,7 @@ create policy "Coaches can view their clients' profiles" on public.profiles for 
   )
 );
 create policy "Head coaches can view any profile" on public.profiles for select using (
-  exists (
-    select 1 from public.profiles p where p.id = auth.uid() and p.role = 'head_coach'
-  )
+  public.is_head_coach()
 );
 
 -- User Stats: Users can CRUD their own stats. Coaches can read stats of their clients.
@@ -73,9 +83,7 @@ create policy "Coaches can view clients' stats" on public.user_stats for select 
   )
 );
 create policy "Head coaches can view any stats" on public.user_stats for select using (
-  exists (
-    select 1 from public.profiles p where p.id = auth.uid() and p.role = 'head_coach'
-  )
+  public.is_head_coach()
 );
 
 -- Coaching Plans: Users can view their plans. Coaches can CRUD plans for their clients.
@@ -94,9 +102,7 @@ alter table public.coach_clients enable row level security;
 create policy "Coaches can manage their assignments" on public.coach_clients for all using (auth.uid() = coach_id);
 create policy "Clients can view their assignments" on public.coach_clients for select using (auth.uid() = client_id);
 create policy "Head coaches can view all assignments" on public.coach_clients for select using (
-  exists (
-    select 1 from public.profiles p where p.id = auth.uid() and p.role = 'head_coach'
-  )
+  public.is_head_coach()
 );
 
 -- AUTO CREATE PROFILE TRIGGER
