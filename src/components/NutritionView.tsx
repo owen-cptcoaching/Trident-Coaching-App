@@ -6,23 +6,39 @@ import { cn } from '../lib/utils';
 
 interface NutritionViewProps {
   plan: NutritionPlan;
+  isQuickView?: boolean;
+  onEnterFullView?: () => void;
 }
 
-export const NutritionView: React.FC<NutritionViewProps> = ({ plan }) => {
+export const NutritionView: React.FC<NutritionViewProps> = ({ plan, isQuickView = false, onEnterFullView }) => {
   return (
     <div className="space-y-20">
-      <div className="max-w-3xl">
-        <div className="flex items-center gap-6 mb-4">
-          <span className="text-8xl font-display italic text-stone-200 leading-none">02</span>
-          <h2 className="text-6xl font-display font-black uppercase tracking-tighter leading-none italic">
-            Nutrition Plan
-          </h2>
+      <div className="max-w-3xl flex flex-col md:flex-row md:items-start justify-between gap-6">
+        <div>
+          <div className="flex items-center gap-6 mb-4">
+            <span className="text-8xl font-display italic text-stone-200 leading-none">02</span>
+            <h2 className="text-6xl font-display font-black uppercase tracking-tighter leading-none italic">
+              Nutrition Plan
+            </h2>
+          </div>
+          <p className="text-xl text-stone-500 font-serif italic mb-8 pl-24">
+            {plan.title}
+          </p>
         </div>
-        <p className="text-xl text-stone-500 font-serif italic mb-8 pl-24">
-          {plan.title}
-        </p>
+        
+        {isQuickView && (
+          <div className="flex bg-white p-1 rounded-sm border border-black shrink-0 md:mt-4 ml-24 md:ml-0 self-start">
+            <button
+               onClick={onEnterFullView}
+               className="bg-black text-white px-6 py-2 text-[10px] font-bold uppercase tracking-widest hover:bg-stone-800 transition-colors"
+            >
+               View Macros
+            </button>
+          </div>
+        )}
+      </div>
 
-        <div className="pl-24 grid grid-cols-1 md:grid-cols-4 gap-8">
+      <div className="pl-24 max-w-3xl grid grid-cols-1 md:grid-cols-4 gap-8">
             <div className="border-t-4 border-stone-900 pt-6">
                 <p className="text-[10px] font-bold text-stone-400 uppercase tracking-widest mb-1">Energy Budget</p>
                 <p className="text-4xl font-mono font-black">{plan.dailyCalories}<span className="text-sm font-sans ml-1 text-stone-300 italic uppercase">kcal</span></p>
@@ -38,10 +54,21 @@ export const NutritionView: React.FC<NutritionViewProps> = ({ plan }) => {
                 </div>
             ))}
         </div>
-      </div>
 
-      <div className="space-y-12">
-        <h4 className="text-[10px] font-black uppercase tracking-[0.4em] text-stone-300 border-b border-stone-100 pb-4">Scheduled Feedings</h4>
+      {isQuickView && (
+        <div className="pl-24 mt-8 flex flex-wrap gap-2">
+          {plan?.meals?.map((meal, idx) => (
+            <span key={idx} className="bg-stone-100 text-stone-600 px-3 py-1 text-[10px] uppercase font-bold tracking-widest rounded-sm border border-stone-200">
+              {meal.time} - {meal.name}
+            </span>
+          ))}
+        </div>
+      )}
+
+      {!isQuickView && (
+        <>
+          <div className="space-y-12">
+            <h4 className="text-[10px] font-black uppercase tracking-[0.4em] text-stone-300 border-b border-stone-100 pb-4">Scheduled Feedings</h4>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-12">
           {plan?.meals?.map((meal, idx) => (
             <motion.div
@@ -111,7 +138,9 @@ export const NutritionView: React.FC<NutritionViewProps> = ({ plan }) => {
                 </div>
             </div>
           </div>
-      </div>
+        </div>
+        </>
+      )}
     </div>
   );
 };

@@ -7,9 +7,11 @@ import { cn } from '../lib/utils';
 interface TrainingViewProps {
   program: TrainingProgram;
   isCoach?: boolean;
+  isQuickView?: boolean;
+  onEnterFullView?: () => void;
 }
 
-export const TrainingView: React.FC<TrainingViewProps> = ({ program, isCoach = false }) => {
+export const TrainingView: React.FC<TrainingViewProps> = ({ program, isCoach = false, isQuickView = false, onEnterFullView }) => {
   const [selectedExercise, setSelectedExercise] = useState<Exercise | null>(null);
   const [tutorialExercise, setTutorialExercise] = useState<Exercise | null>(null);
   const [layoutMode, setLayoutMode] = useState<'lifestyle' | 'powerlifting'>('lifestyle');
@@ -47,30 +49,41 @@ export const TrainingView: React.FC<TrainingViewProps> = ({ program, isCoach = f
         </div>
 
         <div className="flex bg-white p-1 rounded-sm border border-black shrink-0 md:mt-4 ml-6 md:ml-0 self-start">
-          <button
-            onClick={() => isCoach && setLayoutMode('lifestyle')}
-            disabled={!isCoach && layoutMode !== 'lifestyle'}
-            className={cn(
-              "px-6 py-2 text-[10px] font-bold uppercase tracking-widest transition-all",
-              layoutMode === 'lifestyle' ? "bg-black text-white" : "text-black hover:bg-stone-100",
-              !isCoach && layoutMode !== 'lifestyle' && "opacity-30 cursor-not-allowed hover:bg-transparent",
-              !isCoach && layoutMode === 'lifestyle' && "cursor-default hover:bg-black hover:text-white"
-            )}
-          >
-            Lifestyle
-          </button>
-          <button
-            onClick={() => isCoach && setLayoutMode('powerlifting')}
-            disabled={!isCoach && layoutMode !== 'powerlifting'}
-            className={cn(
-              "px-6 py-2 text-[10px] font-bold uppercase tracking-widest transition-all",
-              layoutMode === 'powerlifting' ? "bg-black text-white" : "text-black hover:bg-stone-100",
-              !isCoach && layoutMode !== 'powerlifting' && "opacity-30 cursor-not-allowed hover:bg-transparent",
-              !isCoach && layoutMode === 'powerlifting' && "cursor-default hover:bg-black hover:text-white"
-            )}
-          >
-            Powerlifting
-          </button>
+          {!isQuickView ? (
+            <>
+              <button
+                onClick={() => isCoach && setLayoutMode('lifestyle')}
+                disabled={!isCoach && layoutMode !== 'lifestyle'}
+                className={cn(
+                  "px-6 py-2 text-[10px] font-bold uppercase tracking-widest transition-all",
+                  layoutMode === 'lifestyle' ? "bg-black text-white" : "text-black hover:bg-stone-100",
+                  !isCoach && layoutMode !== 'lifestyle' && "opacity-30 cursor-not-allowed hover:bg-transparent",
+                  !isCoach && layoutMode === 'lifestyle' && "cursor-default hover:bg-black hover:text-white"
+                )}
+              >
+                Lifestyle
+              </button>
+              <button
+                onClick={() => isCoach && setLayoutMode('powerlifting')}
+                disabled={!isCoach && layoutMode !== 'powerlifting'}
+                className={cn(
+                  "px-6 py-2 text-[10px] font-bold uppercase tracking-widest transition-all",
+                  layoutMode === 'powerlifting' ? "bg-black text-white" : "text-black hover:bg-stone-100",
+                  !isCoach && layoutMode !== 'powerlifting' && "opacity-30 cursor-not-allowed hover:bg-transparent",
+                  !isCoach && layoutMode === 'powerlifting' && "cursor-default hover:bg-black hover:text-white"
+                )}
+              >
+                Powerlifting
+              </button>
+            </>
+          ) : (
+            <button
+               onClick={onEnterFullView}
+               className="bg-black text-white px-6 py-2 text-[10px] font-bold uppercase tracking-widest hover:bg-stone-800 transition-colors"
+            >
+               Enter Protocol
+            </button>
+          )}
         </div>
       </div>
 
@@ -90,7 +103,19 @@ export const TrainingView: React.FC<TrainingViewProps> = ({ program, isCoach = f
               </h3>
             </div>
 
-            {layoutMode === 'powerlifting' ? (
+            {isQuickView && (day.exercises?.length || 0) > 0 && (
+              <div className="mt-4 flex flex-wrap gap-2">
+                {day.exercises.map((ex, exIdx) => (
+                  <span key={exIdx} className="bg-stone-100 text-stone-600 px-3 py-1 text-[10px] uppercase font-bold tracking-widest rounded-sm border border-stone-200">
+                    {ex.name}
+                  </span>
+                ))}
+              </div>
+            )}
+
+            {!isQuickView && (
+              <>
+                {layoutMode === 'powerlifting' ? (
               <div className="overflow-x-auto w-full border border-stone-300">
                 <table className="w-full text-left text-sm whitespace-nowrap">
                   <thead className="bg-stone-900 text-stone-100 text-[10px] uppercase font-bold tracking-widest">
@@ -217,8 +242,10 @@ export const TrainingView: React.FC<TrainingViewProps> = ({ program, isCoach = f
                 )}
               </div>
             )}
+              </>
+            )}
             
-            {day.exercises.length > 0 && (
+            {!isQuickView && day.exercises.length > 0 && (
               <div className="bg-stone-100 p-8 mt-12 border-l-8 border-stone-900 max-w-2xl">
                 <p className="text-[10px] uppercase tracking-widest font-black mb-3 text-stone-400">Coach's Daily Instruction</p>
                 <p className="text-lg font-serif italic text-stone-700 leading-relaxed">

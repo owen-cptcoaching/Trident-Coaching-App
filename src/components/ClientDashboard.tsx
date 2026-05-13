@@ -31,44 +31,6 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({
     <div className="space-y-12">
       {hasProgram ? (
         <>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            {/* Training Box */}
-            <div 
-              onClick={onOpenTraining}
-              className="group cursor-pointer bg-stone-900 text-white p-8 border border-stone-900 relative overflow-hidden flex flex-col justify-between min-h-[240px] shadow-lg shadow-stone-200/50 hover:shadow-xl transition-all"
-            >
-              <div className="absolute inset-0 bg-[repeating-linear-gradient(45deg,transparent,transparent_10px,rgba(255,255,255,0.03)_10px,rgba(255,255,255,0.03)_20px)]" />
-              <div className="relative z-10 flex justify-between items-start">
-                <h2 className="text-4xl font-oswald font-black uppercase tracking-tight group-hover:text-stone-300 transition-colors">Training</h2>
-                <Activity className="text-stone-500 group-hover:text-white transition-colors" size={28} />
-              </div>
-              <div className="relative z-10 mt-8 space-y-4">
-                <p className="text-sm font-serif italic text-stone-400">View your active training block, structured sessions, and track performance.</p>
-                <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-stone-200 group-hover:text-white transition-colors">
-                  Enter Protocol <ChevronRight size={14} />
-                </div>
-              </div>
-            </div>
-
-            {/* Nutrition Box */}
-            <div 
-              onClick={onOpenNutrition}
-              className="group cursor-pointer bg-stone-900 text-white p-8 border border-stone-900 relative overflow-hidden flex flex-col justify-between min-h-[240px] shadow-lg shadow-stone-200/50 hover:shadow-xl transition-all"
-            >
-              <div className="absolute inset-0 bg-[repeating-linear-gradient(-45deg,transparent,transparent_10px,rgba(255,255,255,0.03)_10px,rgba(255,255,255,0.03)_20px)]" />
-              <div className="relative z-10 flex justify-between items-start">
-                <h2 className="text-4xl font-oswald font-black uppercase tracking-tight group-hover:text-stone-300 transition-colors">Nutrition</h2>
-                <Apple className="text-stone-500 group-hover:text-white transition-colors" size={28} />
-              </div>
-              <div className="relative z-10 mt-8 space-y-4">
-                <p className="text-sm font-serif italic text-stone-400">Review your daily macros, meal targets, and supplementation guidance.</p>
-                <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-stone-200 group-hover:text-white transition-colors">
-                  View Macros <ChevronRight size={14} />
-                </div>
-              </div>
-            </div>
-          </div>
-
           <div className="w-full bg-white p-8 border border-stone-200 shadow-sm">
             <div className="flex justify-between items-center mb-8 pb-4 border-b border-stone-100">
               <div>
@@ -121,6 +83,44 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({
                   </div>
                 );
               })}
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            {/* Training Box */}
+            <div 
+              onClick={onOpenTraining}
+              className="group cursor-pointer bg-stone-900 text-white p-8 border border-stone-900 relative overflow-hidden flex flex-col justify-between min-h-[240px] shadow-lg shadow-stone-200/50 hover:shadow-xl transition-all"
+            >
+              <div className="absolute inset-0 bg-[repeating-linear-gradient(45deg,transparent,transparent_10px,rgba(255,255,255,0.03)_10px,rgba(255,255,255,0.03)_20px)]" />
+              <div className="relative z-10 flex justify-between items-start">
+                <h2 className="text-4xl font-oswald font-black uppercase tracking-tight group-hover:text-stone-300 transition-colors">Training</h2>
+                <Activity className="text-stone-500 group-hover:text-white transition-colors" size={28} />
+              </div>
+              <div className="relative z-10 mt-8 space-y-4">
+                <p className="text-sm font-serif italic text-stone-400">View your active training block, structured sessions, and track performance.</p>
+                <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-stone-200 group-hover:text-white transition-colors">
+                  Enter Protocol <ChevronRight size={14} />
+                </div>
+              </div>
+            </div>
+
+            {/* Nutrition Box */}
+            <div 
+              onClick={onOpenNutrition}
+              className="group cursor-pointer bg-stone-900 text-white p-8 border border-stone-900 relative overflow-hidden flex flex-col justify-between min-h-[240px] shadow-lg shadow-stone-200/50 hover:shadow-xl transition-all"
+            >
+              <div className="absolute inset-0 bg-[repeating-linear-gradient(-45deg,transparent,transparent_10px,rgba(255,255,255,0.03)_10px,rgba(255,255,255,0.03)_20px)]" />
+              <div className="relative z-10 flex justify-between items-start">
+                <h2 className="text-4xl font-oswald font-black uppercase tracking-tight group-hover:text-stone-300 transition-colors">Nutrition</h2>
+                <Apple className="text-stone-500 group-hover:text-white transition-colors" size={28} />
+              </div>
+              <div className="relative z-10 mt-8 space-y-4">
+                <p className="text-sm font-serif italic text-stone-400">Review your daily macros, meal targets, and supplementation guidance.</p>
+                <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-stone-200 group-hover:text-white transition-colors">
+                  View Macros <ChevronRight size={14} />
+                </div>
+              </div>
             </div>
           </div>
         </>

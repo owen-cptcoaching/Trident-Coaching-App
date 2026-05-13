@@ -6,6 +6,7 @@ import { motion, AnimatePresence } from 'motion/react';
 interface StatsFormProps {
   onSubmit: (stats: UserStats) => void;
   isLoading: boolean;
+  onNoCodeClick?: () => void;
 }
 
 const CustomSelect = ({ 
@@ -78,7 +79,7 @@ const CustomSelect = ({
   );
 };
 
-export const StatsForm: React.FC<StatsFormProps> = ({ onSubmit, isLoading }) => {
+export const StatsForm: React.FC<StatsFormProps> = ({ onSubmit, isLoading, onNoCodeClick }) => {
   const [formData, setFormData] = React.useState<UserStats>({
     age: 30,
     weight: 165,
@@ -184,6 +185,13 @@ export const StatsForm: React.FC<StatsFormProps> = ({ onSubmit, isLoading }) => 
               className="w-full bg-transparent border-none p-0 focus:ring-0 outline-none text-xl font-oswald uppercase"
               required
             />
+            <button 
+              type="button"
+              className="text-[10px] text-stone-400 hover:text-stone-900 transition-colors tracking-widest uppercase font-bold font-oswald flex block pt-2 underline"
+              onClick={onNoCodeClick}
+            >
+              Don't have a code?
+            </button>
           </div>
         </div>
 

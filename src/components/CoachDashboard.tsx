@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Users, UserPlus, Settings, Activity, ArrowRight, ChevronDown, Dumbbell } from 'lucide-react';
+import { Users, UserPlus, Settings, Activity, ArrowRight, ChevronDown, Dumbbell, BookOpen, X, Plus } from 'lucide-react';
 
 interface CoachDashboardProps {
   isHeadCoach: boolean;
@@ -8,10 +8,11 @@ interface CoachDashboardProps {
 }
 
 export const CoachDashboard: React.FC<CoachDashboardProps> = ({ isHeadCoach, onExit }) => {
-  const [activeTab, setActiveTab] = useState<'clients' | 'all-clients' | 'coaches' | 'settings' | 'workout-library' | 'add-client'>('clients');
+  const [activeTab, setActiveTab] = useState<'clients' | 'all-clients' | 'coaches' | 'settings' | 'workout-library' | 'program-library' | 'add-client'>('clients');
   const [revenuePeriod, setRevenuePeriod] = useState<'monthly' | 'yearly' | 'all-time'>('monthly');
   const [isRevenueExpanded, setIsRevenueExpanded] = useState(false);
   const [isPeriodDropdownOpen, setIsPeriodDropdownOpen] = useState(false);
+  const [selectedCoachForClients, setSelectedCoachForClients] = useState<any>(null);
 
   // Placeholder data
   const clients = [
@@ -83,6 +84,16 @@ export const CoachDashboard: React.FC<CoachDashboardProps> = ({ isHeadCoach, onE
               </button>
             </>
           )}
+
+          <button 
+            onClick={() => setActiveTab('program-library')}
+            className={`text-left px-4 py-3 text-xs uppercase tracking-widest font-bold font-oswald flex items-center gap-3 transition-colors ${
+              activeTab === 'program-library' ? 'bg-stone-900 text-white' : 'hover:bg-stone-100'
+            }`}
+          >
+            <BookOpen size={16} />
+            Program Library
+          </button>
 
           <button 
             onClick={() => setActiveTab('workout-library')}
@@ -175,12 +186,36 @@ export const CoachDashboard: React.FC<CoachDashboardProps> = ({ isHeadCoach, onE
                         <tr key={coach.id} className="border-b border-stone-100 last:border-0 hover:bg-stone-50 transition-colors">
                           <td className="px-6 py-4 font-bold">{coach.name}</td>
                           <td className="px-6 py-4 italic font-serif text-stone-500">{coach.specialization}</td>
-                          <td className="px-6 py-4">{coach.activeClients}</td>
+                          <td className="px-6 py-4 flex items-center gap-2">
+                            {coach.activeClients}
+                            <button 
+                              onClick={() => setSelectedCoachForClients(coach)}
+                              className="text-stone-400 hover:text-stone-900 transition-colors bg-white border border-stone-200 rounded-sm p-0.5"
+                            >
+                              <Plus size={12} />
+                            </button>
+                          </td>
                           <td className="px-6 py-4 text-xs font-bold uppercase tracking-widest cursor-pointer underline hover:text-stone-500">Edit</td>
                         </tr>
                       ))}
                     </tbody>
                   </table>
+                </div>
+              </div>
+            )}
+
+            {activeTab === 'program-library' && (
+              <div className="space-y-6">
+                <div className="flex items-center border-b border-stone-200 pb-4">
+                  <h2 className="text-xl font-bold uppercase tracking-tight font-oswald">Program Library</h2>
+                </div>
+                <div className="bg-white border border-stone-200 p-8 text-center">
+                  <BookOpen size={48} className="mx-auto text-stone-300 mb-4" />
+                  <p className="text-stone-500 italic font-serif text-sm">
+                    {isHeadCoach 
+                      ? "Program library coming soon. As Head Coach, you can see and duplicate all programs created by any coach."
+                      : "Program library coming soon. You can see and duplicate programs you've created for your clients."}
+                  </p>
                 </div>
               </div>
             )}
@@ -367,6 +402,64 @@ export const CoachDashboard: React.FC<CoachDashboardProps> = ({ isHeadCoach, onE
             )}
           </motion.div>
         </div>
+
+        <AnimatePresence>
+          {selectedCoachForClients && (
+            <motion.div
+              key="coach-clients-modal"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 bg-stone-900/40 backdrop-blur-sm"
+              onClick={() => setSelectedCoachForClients(null)}
+            >
+              <motion.div 
+                initial={{ opacity: 0, scale: 0.95, y: 20 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.95, y: 20 }}
+                className="bg-[#F9F8F6] w-full max-w-5xl max-h-[90vh] overflow-y-auto border border-stone-200 shadow-2xl rounded-sm p-6 sm:p-10"
+                onClick={e => e.stopPropagation()}
+              >
+                <div className="flex justify-between items-center mb-8 pb-4 border-b border-stone-200">
+                  <h2 className="text-xl font-bold uppercase tracking-tight font-oswald">{selectedCoachForClients.name}'s Clients</h2>
+                  <button
+                    onClick={() => setSelectedCoachForClients(null)}
+                    className="text-stone-400 hover:text-stone-900 transition-colors bg-white p-2 border border-stone-200 rounded-sm cursor-pointer"
+                  >
+                    <X size={20} />
+                  </button>
+                </div>
+                
+                {clients.filter(c => c.coach === selectedCoachForClients.name).length > 0 ? (
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {clients.filter(c => c.coach === selectedCoachForClients.name).map(client => (
+                      <div key={client.id} className="bg-white border border-stone-200 p-6 flex flex-col group hover:border-stone-400 transition-colors cursor-pointer">
+                        <div className="flex justify-between items-start mb-8">
+                          <h3 className="font-bold text-lg">{client.name}</h3>
+                          <span className="text-[10px] uppercase tracking-widest font-bold text-stone-500 bg-stone-100 px-2 py-1">
+                            {client.status}
+                          </span>
+                        </div>
+                        
+                        <div className="space-y-2 mt-auto">
+                          <p className="text-xs text-stone-500 font-serif italic">Phase: {client.phase}</p>
+                        </div>
+                        
+                        <div className="mt-6 pt-4 border-t border-stone-100 flex items-center justify-between text-xs font-bold uppercase tracking-widest text-stone-400 group-hover:text-stone-900 transition-colors">
+                          View Plan <ArrowRight size={14} />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center py-12 text-stone-500 italic font-serif text-sm">
+                    This coach has no active clients.
+                  </div>
+                )}
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </main>
     </div>
   );
