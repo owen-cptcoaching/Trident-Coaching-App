@@ -54,45 +54,6 @@ export function AuthScreen({ onSuccess }: AuthScreenProps) {
     }
   };
 
-  const handleGoogleLogin = async () => {
-    setIsLoading(true);
-    setError(null);
-    try {
-      const { data, error: oauthError } = await supabase.auth.signInWithOAuth({
-        provider: 'google',
-        options: {
-          skipBrowserRedirect: true,
-          redirectTo: `${window.location.origin}/auth/callback`,
-        },
-      });
-
-      if (oauthError) throw oauthError;
-
-      if (data?.url) {
-        // Open the URL directly in a popup
-        const width = 500;
-        const height = 600;
-        const left = window.screen.width / 2 - width / 2;
-        const top = window.screen.height / 2 - height / 2;
-        
-        window.open(
-          data.url,
-          'oauth_popup',
-          `width=${width},height=${height},left=${left},top=${top}`
-        );
-
-        // We listen for the postMessage from the popup in the parent App component (using useEffect)
-      } else {
-        throw new Error("Could not get OAuth URL. Make sure Google is enabled in your Supabase Auth settings.");
-      }
-    } catch (err: any) {
-      console.error(err);
-      setError(err.message || 'An error occurred during authentication.');
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
   return (
     <div className="flex h-screen w-screen items-center justify-center bg-[#F9F8F6] px-4 font-sans text-stone-900">
       <div className="max-w-md w-full bg-white p-12 border border-stone-200 text-center shadow-sm">
@@ -160,30 +121,6 @@ export function AuthScreen({ onSuccess }: AuthScreenProps) {
             {isLoading ? 'Loading...' : (isSignUp ? 'Sign Up' : 'Sign In')}
           </button>
         </form>
-
-        <div className="flex items-center gap-4 mb-6">
-          <div className="flex-1 h-px bg-stone-200"></div>
-          <span className="text-[10px] uppercase tracking-widest font-bold text-stone-400">OR</span>
-          <div className="flex-1 h-px bg-stone-200"></div>
-        </div>
-
-        <button
-          type="button"
-          onClick={handleGoogleLogin}
-          disabled={isLoading}
-          className="w-full flex items-center justify-center gap-3 bg-white border border-stone-200 text-stone-900 px-6 py-4 text-xs font-bold uppercase tracking-widest hover:bg-stone-50 transition-colors disabled:opacity-50 mb-6"
-        >
-          {isLoading ? (
-            'Loading...'
-          ) : (
-            <>
-              <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24">
-                 <path d="M12.48 10.92v3.28h7.84c-.24 1.84-.853 3.187-1.787 4.133-1.147 1.147-2.933 2.4-6.053 2.4-4.827 0-8.6-3.893-8.6-8.72s3.773-8.72 8.6-8.72c2.6 0 4.507 1.027 5.907 2.347l2.307-2.307C18.747 1.44 16.133 0 12.48 0 5.867 0 .307 5.387.307 12s5.56 12 12.173 12c3.573 0 6.267-1.173 8.373-3.36 2.16-2.16 2.84-5.213 2.84-7.667 0-.76-.053-1.467-.173-2.053H12.48z"/>
-              </svg>
-              Continue with Google
-            </>
-          )}
-        </button>
 
         <p className="text-xs text-stone-500">
           {isSignUp ? "Already have an account? " : "Don't have an account? "}

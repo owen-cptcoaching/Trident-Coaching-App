@@ -142,12 +142,17 @@ export default function App() {
       } finally {
         setIsInitializingAuth(false);
         setIsInitializingProfile(false);
-        setCurrentView(isUserCoach ? "coach-dashboard" : "client");
+        setCurrentView("client");
       }
     };
 
     // Check initial auth state
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    supabase.auth.getSession().then(({ data: { session }, error }) => {
+      if (error) {
+        console.error("Error getting session:", error);
+        // If there's an error like invalid refresh token, clear out the session
+        supabase.auth.signOut();
+      }
       const currentUser = session?.user ?? null;
       setUser(currentUser);
       if (currentUser) {
@@ -179,7 +184,11 @@ export default function App() {
         return;
       }
       if (event.data?.type === "OAUTH_AUTH_SUCCESS") {
-        supabase.auth.getSession().then(({ data: { session } }) => {
+        supabase.auth.getSession().then(({ data: { session }, error }) => {
+          if (error) {
+            console.error("Error getting session from popup:", error);
+            supabase.auth.signOut();
+          }
           const currentUser = session?.user ?? null;
           setUser(currentUser);
           if (currentUser) {
@@ -403,7 +412,7 @@ export default function App() {
               exit={{ opacity: 0, scale: 1.02 }}
               className="space-y-12"
             >
-              {plan ? (
+              {(plan || isCoach) ? (
                 <div className="flex flex-col items-center justify-center py-20">
                   <div className="text-center max-w-3xl mx-auto mb-12">
                     <h1 className="text-6xl md:text-8xl font-display font-black uppercase tracking-tighter leading-[0.85] mb-6 italic">
@@ -413,15 +422,22 @@ export default function App() {
                       </span>
                     </h1>
                     <p className="text-lg text-stone-500 font-serif italic max-w-xl mx-auto">
-                      Your highly personalized elite physical performance
-                      program is active.
+                      {isCoach 
+                        ? "Your coaching portal is ready." 
+                        : "Your highly personalized elite physical performance program is active."}
                     </p>
                   </div>
                   <button
-                    onClick={() => setActiveTab("dashboard")}
+                    onClick={() => {
+                      if (isCoach) {
+                        setCurrentView("coach-dashboard");
+                      } else {
+                        setActiveTab("dashboard");
+                      }
+                    }}
                     className="w-full max-w-md bg-stone-900 text-white py-6 font-bold uppercase tracking-[0.3em] text-sm flex items-center justify-center gap-2 hover:bg-stone-800 transition-all cursor-pointer font-oswald"
                   >
-                    Open Program <ArrowRight size={16} />
+                    Open {isCoach ? "Dashboard" : "Program"} <ArrowRight size={16} />
                   </button>
                 </div>
               ) : (
@@ -701,7 +717,10 @@ export default function App() {
         <div className="flex gap-8 text-[10px] uppercase tracking-widest font-bold">
           <span 
             className="cursor-pointer hover:text-white transition-colors"
-            onClick={() => setIsCoach(!isCoach)}
+            onClick={() => {
+              setIsCoach(!isCoach);
+              if (!isCoach) setCurrentView("coach-dashboard");
+            }}
           >
             Role: {isCoach ? "Coach" : plan ? "Recurring Client" : "New Client"}
           </span>
