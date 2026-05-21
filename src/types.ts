@@ -54,3 +54,14 @@ export interface CoachingResponse {
   trainingProgram: TrainingProgram;
   nutritionPlan: NutritionPlan;
 }
+
+export interface ClientTask {
+  id: string;
+  clientId: string; // Can be a client ID or a mock client name (e.g. John Doe)
+  title: string;
+  description?: string;
+  assignedBy: string;
+  category: 'Nutrition' | 'Hydration' | 'Recovery' | 'Training';
+  isCompleted: boolean;
+  createdAt: string;
+}

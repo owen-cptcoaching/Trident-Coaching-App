@@ -32,7 +32,7 @@ export const NutritionView: React.FC<NutritionViewProps> = ({ plan, isQuickView 
                onClick={onEnterFullView}
                className="bg-black text-white px-6 py-2 text-[10px] font-bold uppercase tracking-widest hover:bg-stone-800 transition-colors"
             >
-               View Macros
+               View Meal Plan
             </button>
           </div>
         )}

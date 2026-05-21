@@ -4,7 +4,7 @@
  */
 
 import React, { useEffect } from "react";
-import { UserStats, CoachingResponse } from "./types";
+import { UserStats, CoachingResponse, ClientTask } from "./types";
 import { generateCoachingPlan } from "./services/geminiService";
 import { StatsForm } from "./components/StatsForm";
 import { TrainingView } from "./components/TrainingView";
@@ -35,11 +35,57 @@ export default function App() {
   const [isCheckingOut, setIsCheckingOut] = React.useState(false);
   const [activeTab, setActiveTab] = React.useState<
     "dashboard" | "assessment" | "training" | "nutrition" | "no-code" | "coach-match"
-  >("assessment");
+  >(() => {
+    const params = new URLSearchParams(window.location.search);
+    const page = params.get("page");
+    const validPages = ["dashboard", "assessment", "training", "nutrition", "no-code", "coach-match"];
+    return (page && validPages.includes(page)) ? (page as any) : "assessment";
+  });
+  const [isPageLoading, setIsPageLoading] = React.useState(false);
+  const [loadingText, setLoadingText] = React.useState("Loading Page...");
+
+  const navigate = (tab: "dashboard" | "assessment" | "training" | "nutrition" | "no-code" | "coach-match") => {
+    window.scrollTo(0, 0);
+    
+    let text = "Loading...";
+    if (tab === "training") text = "Accessing Performance Protocol...";
+    else if (tab === "nutrition") text = "Accessing Nutrition Plan...";
+    else if (tab === "dashboard") text = "Opening Athlete Dashboard...";
+    else if (tab === "assessment") text = "Initializing Systems...";
+    else if (tab === "coach-match") text = "Matching Elite Coaches...";
+    
+    setLoadingText(text);
+    setIsPageLoading(true);
+    
+    const url = new URL(window.location.href);
+    url.searchParams.set("page", tab);
+    window.history.pushState(null, "", url.toString());
+
+    setTimeout(() => {
+      setActiveTab(tab);
+      setIsPageLoading(false);
+    }, 450);
+  };
+
+  React.useEffect(() => {
+    const handlePopState = () => {
+      const params = new URLSearchParams(window.location.search);
+      const page = params.get("page");
+      const validPages = ["dashboard", "assessment", "training", "nutrition", "no-code", "coach-match"];
+      if (page && validPages.includes(page)) {
+        setActiveTab(page as any);
+      } else {
+        setActiveTab(plan ? "dashboard" : "assessment");
+      }
+    };
+    window.addEventListener("popstate", handlePopState);
+    return () => window.removeEventListener("popstate", handlePopState);
+  }, [plan]);
   const [currentView, setCurrentView] = React.useState<
     "client" | "coach-dashboard"
   >("client");
   const [isQuickView, setIsQuickView] = React.useState(false);
+  const [previewType, setPreviewType] = React.useState<"training" | "nutrition" | null>(null);
 
   const [isCoach, setIsCoach] = React.useState(false);
   const [isHeadCoach, setIsHeadCoach] = React.useState(false);
@@ -48,6 +94,135 @@ export default function App() {
   const [isInitializingAuth, setIsInitializingAuth] = React.useState(true);
   const [isInitializingProfile, setIsInitializingProfile] =
     React.useState(false);
+
+  const [tasks, setTasks] = React.useState<ClientTask[]>(() => {
+    const saved = localStorage.getItem("trident_client_tasks");
+    if (saved) {
+      try {
+        return JSON.parse(saved);
+      } catch (e) {
+        console.error("Error parsing tasks", e);
+      }
+    }
+    return [
+      {
+        id: "t1",
+        clientId: "Ronnie Coleman",
+        title: "160g Protein intake",
+        description: "Target lean sources, minimum 30g per meal.",
+        assignedBy: "Head Coach",
+        category: "Nutrition",
+        isCompleted: false,
+        createdAt: new Date().toISOString()
+      },
+      {
+        id: "t2",
+        clientId: "Ronnie Coleman",
+        title: "Hydrate 1 Gallon",
+        description: "Keep a gallon jug close, finish before 8 PM.",
+        assignedBy: "Head Coach",
+        category: "Hydration" as any,
+        isCompleted: true,
+        createdAt: new Date().toISOString()
+      },
+      {
+        id: "t3",
+        clientId: "Sarah Connor",
+        title: "Consolidate 8h Sleep",
+        description: "Ensure deep recovery, off screens 1 hour before bed.",
+        assignedBy: "Mike Mentzer",
+        category: "Recovery",
+        isCompleted: false,
+        createdAt: new Date().toISOString()
+      },
+      {
+        id: "t4",
+        clientId: "David Goggins",
+        title: "Log morning heart rate",
+        description: "Check HRV and resting HR immediately after waking up.",
+        assignedBy: "Tom Platz",
+        category: "Training",
+        isCompleted: false,
+        createdAt: new Date().toISOString()
+      },
+      {
+        id: "t5",
+        clientId: "John Doe",
+        title: "Dynamic Warm-up Sequence",
+        description: "10 mins mobility before starting main working sets.",
+        assignedBy: "Mike Mentzer",
+        category: "Training",
+        isCompleted: true,
+        createdAt: new Date().toISOString()
+      }
+    ];
+  });
+
+  // Watch and persist tasks
+  React.useEffect(() => {
+    localStorage.setItem("trident_client_tasks", JSON.stringify(tasks));
+  }, [tasks]);
+
+  const handleAddTask = (newTask: Omit<ClientTask, "id" | "createdAt">) => {
+    console.log("Adding task", newTask);
+    const task: ClientTask = {
+      ...newTask,
+      id: "task_" + Math.random().toString(36).substr(2, 9),
+      createdAt: new Date().toISOString()
+    };
+    setTasks(prev => [task, ...prev]);
+  };
+
+  const handleToggleTask = (taskId: string) => {
+    setTasks(prev => prev.map(t => t.id === taskId ? { ...t, isCompleted: !t.isCompleted } : t));
+  };
+
+  const handleDeleteTask = (taskId: string) => {
+    setTasks(prev => prev.filter(t => t.id !== taskId));
+  };
+
+  // Auto-assign default onboarding habits for new/unassigned users so they have immediate interactive elements
+  React.useEffect(() => {
+    if (user && !user.email?.toLowerCase().includes("owen.cpt1")) {
+      const userEmail = user.email || "Client";
+      const userTasks = tasks.filter(t => t.clientId === userEmail);
+      if (userTasks.length === 0) {
+        const onboardingTasks: ClientTask[] = [
+          {
+            id: `onb_1_${user.id}`,
+            clientId: userEmail,
+            title: "Performance Assessment Completion",
+            description: "Finish the onboarding form detailing your age, weight, and goals.",
+            assignedBy: "System Coach",
+            category: "Training",
+            isCompleted: !!plan,
+            createdAt: new Date().toISOString()
+          },
+          {
+            id: `onb_2_${user.id}`,
+            clientId: userEmail,
+            title: "Establish 100oz Daily Hydration",
+            description: "Hydration underpins cellular performance. Set a daily water goal.",
+            assignedBy: "System Coach",
+            category: "Hydration" as any,
+            isCompleted: false,
+            createdAt: new Date().toISOString()
+          },
+          {
+            id: `onb_3_${user.id}`,
+            clientId: userEmail,
+            title: "Track Resting Heart Rate & HRV",
+            description: "Log your waking heart rate to baseline central nervous system recovery.",
+            assignedBy: "System Coach",
+            category: "Recovery",
+            isCompleted: false,
+            createdAt: new Date().toISOString()
+          }
+        ];
+        setTasks(prev => [...prev, ...onboardingTasks]);
+      }
+    }
+  }, [user, plan]);
 
   useEffect(() => {
     const fetchUserProfile = async (userId: string, email?: string) => {
@@ -132,9 +307,32 @@ export default function App() {
             trainingProgram: currentPlan.training_program,
             nutritionPlan: normalizedNutritionPlan,
           });
-          setActiveTab("assessment");
+
+          const params = new URLSearchParams(window.location.search);
+          const queryPage = params.get("page") as any;
+          const validPages = ["dashboard", "assessment", "training", "nutrition", "no-code", "coach-match"];
+
+          if (queryPage && validPages.includes(queryPage)) {
+            setActiveTab(queryPage);
+          } else {
+            // If the user logged in is a coach, always start on the landing page ("assessment" tab).
+            // This allows them to choose who they want to view the site as.
+            if (isUserCoach) {
+              setActiveTab("assessment");
+            } else {
+              setActiveTab("dashboard");
+            }
+          }
         } else {
-          setActiveTab("assessment");
+          const params = new URLSearchParams(window.location.search);
+          const queryPage = params.get("page") as any;
+          const validPages = ["dashboard", "assessment", "training", "nutrition", "no-code", "coach-match"];
+
+          if (queryPage && validPages.includes(queryPage)) {
+            setActiveTab(queryPage);
+          } else {
+            setActiveTab("assessment");
+          }
         }
 
       } catch (error) {
@@ -142,6 +340,7 @@ export default function App() {
       } finally {
         setIsInitializingAuth(false);
         setIsInitializingProfile(false);
+        // Landing page is the lobby where they can select roles; always start in "client" view on "assessment" tab
         setCurrentView("client");
       }
     };
@@ -221,6 +420,12 @@ export default function App() {
   useEffect(() => {
     window.scrollTo(0, 0);
   }, [activeTab]);
+
+  useEffect(() => {
+    if (isCoach && activeTab === "dashboard") {
+      setActiveTab("assessment");
+    }
+  }, [isCoach, activeTab]);
 
   const handleStatsSubmit = async (newStats: UserStats) => {
     if (newStats.accessCode !== "1234-5678") {
@@ -312,21 +517,132 @@ export default function App() {
         isHeadCoach={isHeadCoach}
         onExit={() => {
           setCurrentView("client");
-          setActiveTab("assessment");
+          setActiveTab(isCoach ? "assessment" : (plan ? "dashboard" : "assessment"));
         }}
+        tasks={tasks}
+        onAddTask={handleAddTask}
+        onToggleTask={handleToggleTask}
+        onDeleteTask={handleDeleteTask}
       />
+    );
+  }
+
+  if (plan && (activeTab === "training" || activeTab === "nutrition")) {
+    return (
+      <div className="min-h-screen bg-[#F9F8F6] flex flex-col justify-between">
+        <div className="w-full">
+          {/* Simplified Trident Header */}
+          <header className="px-6 md:px-12 pt-10 pb-6 border-b border-stone-200 flex flex-col md:flex-row justify-between items-baseline gap-6 mb-8 md:mb-12">
+            <div
+              className="flex flex-col cursor-pointer hover:opacity-70 transition-opacity"
+              onClick={() => {
+                navigate("dashboard");
+              }}
+            >
+              <h1 className="text-5xl md:text-7xl font-logo tracking-tight font-normal text-stone-900 leading-none">
+                Trident
+              </h1>
+              <p className="text-[10px] uppercase tracking-[0.3em] font-bold text-stone-400 mt-2 font-oswald">
+                Elite Performance Coaching
+              </p>
+            </div>
+          </header>
+
+          {/* The plan as the ONLY thing in the main body (no tabs, no sidebar, no footer) */}
+          <main className="max-w-7xl mx-auto px-6 md:px-12 pb-16">
+            <AnimatePresence mode="wait">
+              {activeTab === "training" && (
+                <motion.div
+                  key="training-view-page"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -20 }}
+                  className="space-y-8"
+                >
+                  <div className="flex items-center justify-between pb-6 border-b border-stone-200">
+                    <button
+                      onClick={() => navigate("dashboard")}
+                      className="flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-stone-500 hover:text-stone-900 transition-colors font-oswald cursor-pointer"
+                    >
+                      ← Back to Dashboard
+                    </button>
+                  </div>
+
+                  <TrainingView
+                    program={plan.trainingProgram}
+                    isCoach={isCoach}
+                    isQuickView={false}
+                  />
+                </motion.div>
+              )}
+
+              {activeTab === "nutrition" && (
+                <motion.div
+                  key="nutrition-view-page"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -20 }}
+                  className="space-y-8"
+                >
+                  <div className="flex items-center justify-between pb-6 border-b border-stone-200">
+                    <button
+                      onClick={() => navigate("dashboard")}
+                      className="flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-stone-500 hover:text-stone-900 transition-colors font-oswald cursor-pointer"
+                    >
+                      ← Back to Dashboard
+                    </button>
+                  </div>
+
+                  <NutritionView
+                    plan={plan.nutritionPlan}
+                    isQuickView={false}
+                  />
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </main>
+        </div>
+      </div>
     );
   }
 
   return (
     <div className="min-h-screen bg-[#F9F8F6]">
+      <AnimatePresence>
+        {isPageLoading && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[100] bg-[#F9F8F6] flex flex-col items-center justify-center pointer-events-auto"
+          >
+            <div className="text-center space-y-6 max-w-sm px-6">
+              <h1 className="text-5xl md:text-6xl font-logo tracking-tight font-normal text-stone-900 leading-none">
+                Trident
+              </h1>
+              <div className="w-48 h-1 bg-[#ECE9E0] relative overflow-hidden mx-auto rounded-full">
+                <motion.div
+                  initial={{ left: "-100%" }}
+                  animate={{ left: "100%" }}
+                  transition={{ repeat: Infinity, duration: 1.2, ease: "easeInOut" }}
+                  className="absolute top-0 bottom-0 w-24 bg-stone-900 rounded-full"
+                />
+              </div>
+              <p className="text-xs uppercase tracking-[0.2em] font-bold text-stone-400 font-oswald animate-pulse">
+                {loadingText}
+              </p>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* Header */}
       <header className="px-6 md:px-12 pt-10 pb-6 border-b border-stone-200 flex flex-col md:flex-row justify-between items-start md:items-baseline gap-6">
         <div
           className={`flex flex-col ${activeTab === "assessment" ? "" : "cursor-pointer hover:opacity-70 transition-opacity"}`}
           onClick={() => {
             if (activeTab !== "assessment") {
-              setActiveTab("assessment");
+              navigate("assessment");
             }
           }}
         >
@@ -339,10 +655,7 @@ export default function App() {
         </div>
 
         <div className="flex flex-col items-start md:items-end justify-start md:justify-end gap-3 text-left md:text-right w-full md:w-auto">
-          {!isQuickView &&
-          (activeTab === "training" ||
-            activeTab === "nutrition") ? null : plan &&
-            activeTab !== "assessment" ? (
+          {plan && activeTab !== "assessment" ? (
             <>
               <div className="flex flex-col items-start md:items-end gap-1 w-full text-left md:text-right">
                 {!isCoach && (
@@ -362,13 +675,11 @@ export default function App() {
               <nav className="flex items-center gap-1 bg-stone-100 p-1 rounded-sm border border-stone-200 mt-1 max-w-full overflow-x-auto">
                 <button
                   onClick={() => {
-                    setActiveTab("training");
-                    setIsQuickView(true);
-                    window.scrollTo(0, 0);
+                    setPreviewType("training");
                   }}
                   className={cn(
-                    "flex items-center gap-2 px-3 sm:px-6 py-1.5 sm:py-2 text-[9px] sm:text-[10px] font-bold uppercase tracking-widest transition-all whitespace-nowrap",
-                    activeTab === "training"
+                    "flex items-center gap-2 px-3 sm:px-6 py-1.5 sm:py-2 text-[9px] sm:text-[10px] font-bold uppercase tracking-widest transition-all whitespace-nowrap cursor-pointer",
+                    activeTab === "training" || previewType === "training"
                       ? "bg-stone-900 text-white"
                       : "text-stone-400 hover:text-stone-900",
                   )}
@@ -377,13 +688,11 @@ export default function App() {
                 </button>
                 <button
                   onClick={() => {
-                    setActiveTab("nutrition");
-                    setIsQuickView(true);
-                    window.scrollTo(0, 0);
+                    setPreviewType("nutrition");
                   }}
                   className={cn(
-                    "flex items-center gap-2 px-3 sm:px-6 py-1.5 sm:py-2 text-[9px] sm:text-[10px] font-bold uppercase tracking-widest transition-all whitespace-nowrap",
-                    activeTab === "nutrition"
+                    "flex items-center gap-2 px-3 sm:px-6 py-1.5 sm:py-2 text-[9px] sm:text-[10px] font-bold uppercase tracking-widest transition-all whitespace-nowrap cursor-pointer",
+                    activeTab === "nutrition" || previewType === "nutrition"
                       ? "bg-stone-900 text-white"
                       : "text-stone-400 hover:text-stone-900",
                   )}
@@ -393,7 +702,7 @@ export default function App() {
               </nav>
             </>
           ) : (
-            <div className="text-left md:text-right flex flex-col items-start md:items-end">
+            <div className="text-left md:text-right flex flex-col items-start md:items-end gap-2">
               <p className="text-[10px] font-display italic text-stone-400 font-oswald uppercase tracking-widest">
                 Peak Intensity Block / 2026
               </p>
@@ -415,7 +724,7 @@ export default function App() {
               {(plan || isCoach) ? (
                 <div className="flex flex-col items-center justify-center py-20">
                   <div className="text-center max-w-3xl mx-auto mb-12">
-                    <h1 className="text-6xl md:text-8xl font-display font-black uppercase tracking-tighter leading-[0.85] mb-6 italic">
+                     <h1 className="text-6xl md:text-8xl font-display font-black uppercase tracking-tighter leading-[0.85] mb-6 italic">
                       Welcome Back to <br />
                       <span className="text-stone-300 font-holigas">
                         Trident
@@ -432,7 +741,7 @@ export default function App() {
                       if (isCoach) {
                         setCurrentView("coach-dashboard");
                       } else {
-                        setActiveTab("dashboard");
+                        navigate("dashboard");
                       }
                     }}
                     className="w-full max-w-md bg-stone-900 text-white py-6 font-bold uppercase tracking-[0.3em] text-sm flex items-center justify-center gap-2 hover:bg-stone-800 transition-all cursor-pointer font-oswald"
@@ -459,7 +768,7 @@ export default function App() {
                   <StatsForm
                     onSubmit={handleStatsSubmit}
                     isLoading={isLoading}
-                    onNoCodeClick={() => setActiveTab("no-code")}
+                    onNoCodeClick={() => navigate("no-code")}
                   />
                 </>
               )}
@@ -485,7 +794,7 @@ export default function App() {
 
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div 
-                  onClick={() => setActiveTab("coach-match")}
+                  onClick={() => navigate("coach-match")}
                   className="border border-stone-200 p-8 flex flex-col items-center justify-center space-y-4 bg-white hover:border-stone-400 transition-colors cursor-pointer group"
                 >
                   <h3 className="text-xl font-bold uppercase tracking-tight font-oswald">Connect with a Coach</h3>
@@ -507,7 +816,7 @@ export default function App() {
               </div>
               
               <button 
-                onClick={() => setActiveTab("assessment")}
+                onClick={() => navigate("assessment")}
                 className="text-[10px] text-stone-400 hover:text-stone-900 transition-colors tracking-widest uppercase font-bold font-oswald underline pt-8"
               >
                 Back to Access Code
@@ -568,7 +877,7 @@ export default function App() {
               
               <div className="text-center pt-8">
                 <button 
-                  onClick={() => setActiveTab("no-code")}
+                  onClick={() => navigate("no-code")}
                   className="text-[10px] text-stone-400 hover:text-stone-900 transition-colors tracking-widest uppercase font-bold font-oswald underline"
                 >
                   Back to Options
@@ -577,9 +886,7 @@ export default function App() {
             </motion.div>
           )}
 
-          {(activeTab === "dashboard" ||
-            activeTab === "training" ||
-            activeTab === "nutrition") && (
+          {activeTab === "dashboard" && (
             <motion.div
               key="dashboard-view"
               initial={{ opacity: 0, y: 20 }}
@@ -617,7 +924,7 @@ export default function App() {
                         </div>
                       ))}
                     <button
-                      onClick={() => setActiveTab("assessment")}
+                      onClick={() => navigate("assessment")}
                       className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest hover:text-stone-900 transition-colors shrink-0"
                     >
                       Edit Profile <ChevronRight size={12} />
@@ -638,34 +945,39 @@ export default function App() {
 
               <ClientDashboard
                 hasProgram={!!plan}
-                onOpenTraining={() => {
-                  setActiveTab("training");
-                  setIsQuickView(false);
-                  window.scrollTo(0, 0);
+                onOpenTrainingPreview={() => {
+                  setPreviewType("training");
                 }}
-                onOpenNutrition={() => {
-                  setActiveTab("nutrition");
-                  setIsQuickView(false);
-                  window.scrollTo(0, 0);
+                onEnterTrainingFull={() => {
+                  navigate("training");
+                }}
+                onOpenNutritionPreview={() => {
+                  setPreviewType("nutrition");
+                }}
+                onEnterNutritionFull={() => {
+                  navigate("nutrition");
                 }}
                 onGenerateProgram={() => {
-                  setActiveTab("assessment");
-                  window.scrollTo(0, 0);
+                  navigate("assessment");
                 }}
+                tasks={tasks}
+                currentClientEmail={user?.email || "Client"}
+                onToggleTask={handleToggleTask}
               />
             </motion.div>
           )}
+
         </AnimatePresence>
 
         <AnimatePresence>
-          {(activeTab === "training" || activeTab === "nutrition") && plan && (
+          {previewType && plan && (
             <motion.div
-              key={`modal-${activeTab}`}
+              key={`preview-modal-${previewType}`}
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 bg-stone-900/40 backdrop-blur-sm"
-              onClick={() => setActiveTab("dashboard")}
+              className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 bg-stone-900/60 backdrop-blur-sm"
+              onClick={() => setPreviewType(null)}
             >
               <motion.div
                 initial={{ opacity: 0, scale: 0.95, y: 20 }}
@@ -675,34 +987,36 @@ export default function App() {
                 onClick={(e) => e.stopPropagation()}
               >
                 <div className="flex justify-between items-center mb-8 pb-4 border-b border-stone-200">
-                  <h2 className="text-2xl font-oswald font-black uppercase tracking-tight">
-                    {activeTab === "training"
-                      ? "Training Protocol"
-                      : "Nutrition Plan"}
+                  <h2 className="text-2xl font-oswald font-black uppercase tracking-tight text-stone-900">
+                    {previewType === "training"
+                      ? "Training Protocol Preview"
+                      : "Nutrition Plan Preview"}
                   </h2>
                   <button
-                    onClick={() => setActiveTab("dashboard")}
-                    className="text-stone-400 hover:text-stone-900 transition-colors bg-white p-2 border border-stone-200 rounded-sm"
+                    onClick={() => setPreviewType(null)}
+                    className="text-stone-400 hover:text-stone-900 transition-colors bg-white p-2 border border-stone-200 rounded-sm cursor-pointer"
                   >
                     <X size={20} />
                   </button>
                 </div>
 
-                {activeTab === "training" ? (
+                {previewType === "training" ? (
                   <TrainingView
                     program={plan.trainingProgram}
                     isCoach={isCoach}
-                    isQuickView={isQuickView}
+                    isQuickView={true}
                     onEnterFullView={() => {
-                      setIsQuickView(false);
+                      setPreviewType(null);
+                      navigate("training");
                     }}
                   />
                 ) : (
                   <NutritionView
                     plan={plan.nutritionPlan}
-                    isQuickView={isQuickView}
+                    isQuickView={true}
                     onEnterFullView={() => {
-                      setIsQuickView(false);
+                      setPreviewType(null);
+                      navigate("nutrition");
                     }}
                   />
                 )}
@@ -718,8 +1032,11 @@ export default function App() {
           <span 
             className="cursor-pointer hover:text-white transition-colors"
             onClick={() => {
-              setIsCoach(!isCoach);
-              if (!isCoach) setCurrentView("coach-dashboard");
+              const nextIsCoach = !isCoach;
+              setIsCoach(nextIsCoach);
+              // Make sure they remain on the landing page in client view when toggling roles so they can choose
+              setCurrentView("client");
+              setActiveTab("assessment");
             }}
           >
             Role: {isCoach ? "Coach" : plan ? "Recurring Client" : "New Client"}
