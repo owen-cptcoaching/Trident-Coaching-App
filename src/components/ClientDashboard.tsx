@@ -31,8 +31,8 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({
     <div className="space-y-12">
       {hasProgram ? (
         <>
-          <div className="w-full bg-white p-8 border border-stone-200 shadow-sm">
-            <div className="flex justify-between items-center mb-8 pb-4 border-b border-stone-100">
+          <div className="w-full bg-white p-4 sm:p-8 border border-stone-200 shadow-sm">
+            <div className="flex justify-between items-center mb-6 sm:mb-8 pb-4 border-b border-stone-100">
               <div>
                 <h2 className="text-2xl font-oswald font-bold uppercase tracking-tight text-stone-900">Training Calendar</h2>
                 <p className="text-stone-400 text-sm font-mono uppercase tracking-widest mt-1">{currentMonth} {currentYear}</p>
@@ -66,18 +66,18 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({
                     )}
                   >
                     <span className={cn(
-                      "font-mono text-sm md:text-base",
+                      "font-mono text-xs sm:text-sm md:text-base",
                       isToday ? "font-bold text-stone-900" : "text-stone-500"
                     )}>
                       {day}
                     </span>
                     
                     {hasWorkout && !isPast && (
-                      <div className="absolute bottom-2 md:bottom-4 left-1/2 -translate-x-1/2 w-1.5 h-1.5 rounded-full bg-stone-900" />
+                      <div className="absolute bottom-1 sm:bottom-2 md:bottom-4 left-1/2 -translate-x-1/2 w-1 h-1 sm:w-1.5 sm:h-1.5 rounded-full bg-stone-900" />
                     )}
                     {hasWorkout && isPast && (
-                      <div className="absolute bottom-1 md:bottom-3 left-1/2 -translate-x-1/2">
-                        <CheckCircle2 size={12} className="text-stone-900" />
+                      <div className="absolute bottom-0.5 sm:bottom-1 md:bottom-3 left-1/2 -translate-x-1/2">
+                        <CheckCircle2 className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-stone-900" />
                       </div>
                     )}
                   </div>

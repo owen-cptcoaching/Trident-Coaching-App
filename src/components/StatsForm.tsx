@@ -110,15 +110,15 @@ export const StatsForm: React.FC<StatsFormProps> = ({ onSubmit, isLoading, onNoC
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      className="max-w-2xl mx-auto bg-white p-12 shadow-sm border border-stone-200"
+      className="max-w-2xl mx-auto bg-white p-6 sm:p-12 shadow-sm border border-stone-200"
     >
       <div className="mb-12 border-b border-stone-100 pb-8">
-        <h2 className="text-4xl font-oswald font-black mb-2 italic uppercase tracking-tighter">Initialize Your Path</h2>
-        <p className="text-stone-400 font-serif italic">Provide your details to generate a high-performance program tailored to your biology and goals.</p>
+        <h2 className="text-3xl sm:text-4xl font-oswald font-black mb-2 italic uppercase tracking-tighter">Initialize Your Path</h2>
+        <p className="text-stone-400 font-serif italic text-sm sm:text-base">Provide your details to generate a high-performance program tailored to your biology and goals.</p>
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-8">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 sm:gap-8">
           <div className="space-y-2 border-b border-stone-100 pb-4">
             <label className="text-[10px] font-bold uppercase tracking-[0.2em] text-stone-400 flex items-center gap-2 font-oswald">
               <User size={12} /> Age
@@ -160,7 +160,7 @@ export const StatsForm: React.FC<StatsFormProps> = ({ onSubmit, isLoading, onNoC
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 sm:gap-8">
           <CustomSelect
             name="gender"
             label="Gender"

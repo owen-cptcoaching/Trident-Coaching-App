@@ -321,7 +321,7 @@ export default function App() {
   return (
     <div className="min-h-screen bg-[#F9F8F6]">
       {/* Header */}
-      <header className="px-6 md:px-12 pt-10 pb-6 border-b border-stone-200 flex flex-col md:flex-row justify-between items-baseline gap-6">
+      <header className="px-6 md:px-12 pt-10 pb-6 border-b border-stone-200 flex flex-col md:flex-row justify-between items-start md:items-baseline gap-6">
         <div
           className={`flex flex-col ${activeTab === "assessment" ? "" : "cursor-pointer hover:opacity-70 transition-opacity"}`}
           onClick={() => {
@@ -330,7 +330,7 @@ export default function App() {
             }
           }}
         >
-          <h1 className="text-6xl md:text-7xl font-logo tracking-tight font-normal text-stone-900 leading-none">
+          <h1 className="text-5xl md:text-7xl font-logo tracking-tight font-normal text-stone-900 leading-none">
             Trident
           </h1>
           <p className="text-[10px] uppercase tracking-[0.3em] font-bold text-stone-400 mt-2 font-oswald">
@@ -338,13 +338,13 @@ export default function App() {
           </p>
         </div>
 
-        <div className="flex flex-col items-end justify-end gap-3 text-right">
+        <div className="flex flex-col items-start md:items-end justify-start md:justify-end gap-3 text-left md:text-right w-full md:w-auto">
           {!isQuickView &&
           (activeTab === "training" ||
             activeTab === "nutrition") ? null : plan &&
             activeTab !== "assessment" ? (
             <>
-              <div className="flex flex-col items-start gap-1 w-full pl-1 text-left">
+              <div className="flex flex-col items-start md:items-end gap-1 w-full text-left md:text-right">
                 {!isCoach && (
                   <p
                     className="text-sm font-bold tracking-tight text-stone-800 italic uppercase font-oswald cursor-pointer hover:text-stone-500 transition-colors leading-none"
@@ -359,7 +359,7 @@ export default function App() {
                   Peak Intensity Block / 2026
                 </p>
               </div>
-              <nav className="flex items-center gap-1 bg-stone-100 p-1 rounded-sm border border-stone-200 mt-1">
+              <nav className="flex items-center gap-1 bg-stone-100 p-1 rounded-sm border border-stone-200 mt-1 max-w-full overflow-x-auto">
                 <button
                   onClick={() => {
                     setActiveTab("training");
@@ -367,7 +367,7 @@ export default function App() {
                     window.scrollTo(0, 0);
                   }}
                   className={cn(
-                    "flex items-center gap-2 px-6 py-2 text-[10px] font-bold uppercase tracking-widest transition-all",
+                    "flex items-center gap-2 px-3 sm:px-6 py-1.5 sm:py-2 text-[9px] sm:text-[10px] font-bold uppercase tracking-widest transition-all whitespace-nowrap",
                     activeTab === "training"
                       ? "bg-stone-900 text-white"
                       : "text-stone-400 hover:text-stone-900",
@@ -382,7 +382,7 @@ export default function App() {
                     window.scrollTo(0, 0);
                   }}
                   className={cn(
-                    "flex items-center gap-2 px-6 py-2 text-[10px] font-bold uppercase tracking-widest transition-all",
+                    "flex items-center gap-2 px-3 sm:px-6 py-1.5 sm:py-2 text-[9px] sm:text-[10px] font-bold uppercase tracking-widest transition-all whitespace-nowrap",
                     activeTab === "nutrition"
                       ? "bg-stone-900 text-white"
                       : "text-stone-400 hover:text-stone-900",
@@ -393,7 +393,7 @@ export default function App() {
               </nav>
             </>
           ) : (
-            <div className="text-right flex flex-col items-end">
+            <div className="text-left md:text-right flex flex-col items-start md:items-end">
               <p className="text-[10px] font-display italic text-stone-400 font-oswald uppercase tracking-widest">
                 Peak Intensity Block / 2026
               </p>
@@ -713,8 +713,8 @@ export default function App() {
       </main>
 
       {/* Footer / Status Bar */}
-      <footer className="h-14 bg-stone-900 text-stone-400 flex items-center px-12 justify-between">
-        <div className="flex gap-8 text-[10px] uppercase tracking-widest font-bold">
+      <footer className="min-h-14 py-4 md:py-0 bg-stone-900 text-stone-400 flex flex-col md:flex-row items-center px-6 md:px-12 justify-between gap-4 text-center">
+        <div className="flex flex-wrap items-center justify-center gap-4 sm:gap-8 text-[10px] uppercase tracking-widest font-bold">
           <span 
             className="cursor-pointer hover:text-white transition-colors"
             onClick={() => {

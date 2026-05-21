@@ -55,8 +55,8 @@ export function AuthScreen({ onSuccess }: AuthScreenProps) {
   };
 
   return (
-    <div className="flex h-screen w-screen items-center justify-center bg-[#F9F8F6] px-4 font-sans text-stone-900">
-      <div className="max-w-md w-full bg-white p-12 border border-stone-200 text-center shadow-sm">
+    <div className="flex min-h-screen w-full items-center justify-center bg-[#F9F8F6] px-4 py-12 font-sans text-stone-900">
+      <div className="max-w-md w-full bg-white p-6 sm:p-12 border border-stone-200 text-center shadow-sm">
         <h1 className="text-6xl font-logo tracking-tight font-normal mb-2 leading-none">Trident</h1>
         <p className="text-[10px] uppercase tracking-[0.3em] font-bold text-stone-400 font-oswald mb-12">
           Elite Performance Coaching

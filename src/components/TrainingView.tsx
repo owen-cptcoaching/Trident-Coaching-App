@@ -34,21 +34,21 @@ export const TrainingView: React.FC<TrainingViewProps> = ({ program, isCoach = f
     <div className="space-y-20 relative">
       <div className="max-w-4xl flex flex-col md:flex-row md:items-start justify-between gap-6">
         <div>
-          <div className="flex items-center gap-6 mb-4">
-            <span className="text-8xl font-display italic text-stone-200 leading-none">01</span>
-            <h2 className="text-6xl font-display font-black uppercase tracking-tighter leading-none italic">
+          <div className="flex items-center gap-4 sm:gap-6 mb-4">
+            <span className="text-5xl sm:text-8xl font-display italic text-stone-200 leading-none">01</span>
+            <h2 className="text-3xl sm:text-6xl font-display font-black uppercase tracking-tighter leading-none italic">
               Training Program
             </h2>
           </div>
-          <p className="text-xl text-stone-500 font-serif italic mb-2 pl-6 md:pl-24">
+          <p className="text-lg sm:text-xl text-stone-500 font-serif italic mb-2 pl-0 sm:pl-24">
             {program.title}
           </p>
-          <p className="text-sm text-stone-400 font-light leading-relaxed pl-6 md:pl-24 max-w-xl">
+          <p className="text-xs sm:text-sm text-stone-400 font-light leading-relaxed pl-0 sm:pl-24 max-w-xl">
             {program.description}
           </p>
         </div>
 
-        <div className="flex bg-white p-1 rounded-sm border border-black shrink-0 md:mt-4 ml-6 md:ml-0 self-start">
+        <div className="flex bg-white p-1 rounded-sm border border-black shrink-0 md:mt-4 ml-0 sm:ml-24 md:ml-0 self-start">
           {!isQuickView ? (
             <>
               <button
@@ -408,18 +408,18 @@ export const TrainingView: React.FC<TrainingViewProps> = ({ program, isCoach = f
                     </div>
                   </div>
                   
-                  <div className="absolute bottom-6 left-6 right-6 z-10 flex justify-between items-end border-t border-cyan-500/30 pt-4">
+                  <div className="absolute bottom-2 sm:bottom-6 left-2 sm:left-6 right-2 sm:right-6 z-10 flex flex-col sm:flex-row justify-between sm:items-end gap-2 border-t border-cyan-500/30 pt-2 sm:pt-4">
                     <div>
-                      <h3 className="font-oswald font-black uppercase text-4xl tracking-widest text-white drop-shadow-[0_0_8px_rgba(34,211,238,0.8)]">
+                      <h3 className="font-oswald font-black uppercase text-lg sm:text-2xl md:text-4xl tracking-widest text-white drop-shadow-[0_0_8px_rgba(34,211,238,0.8)]">
                         {tutorialExercise.name}
                       </h3>
-                      <p className="font-mono text-cyan-200 text-xs mt-2 uppercase tracking-widest">
+                      <p className="font-mono text-cyan-200 text-[9px] sm:text-xs mt-0.5 sm:text-xs uppercase tracking-widest">
                         Optimal Movement Pattern
                       </p>
                     </div>
-                    <div className="text-right">
-                      <p className="font-mono text-[10px] text-cyan-400 uppercase tracking-widest mb-1">Form Cues</p>
-                      <p className="font-serif italic text-sm text-cyan-100 max-w-xs leading-tight">
+                    <div className="text-left sm:text-right">
+                      <p className="font-mono text-[8px] sm:text-[10px] text-cyan-400 uppercase tracking-widest mb-0.5 sm:mb-1">Form Cues</p>
+                      <p className="font-serif italic text-[10px] sm:text-xs md:text-sm text-cyan-100 max-w-xs leading-tight">
                         {tutorialExercise.notes || "Maintain neutral spine. Brace core. Control eccentric phase."}
                       </p>
                     </div>

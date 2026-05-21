@@ -51,10 +51,10 @@ export const CoachDashboard: React.FC<CoachDashboardProps> = ({ isHeadCoach, onE
 
       <main className="flex-1 p-6 md:p-12 max-w-7xl mx-auto w-full flex flex-col md:flex-row gap-12">
         {/* Sidebar */}
-        <aside className="w-full md:w-64 shrink-0 flex flex-col gap-2">
+        <aside className="w-full md:w-64 shrink-0 flex flex-row md:flex-col gap-2 overflow-x-auto no-scrollbar scroll-smooth pb-4 md:pb-0 border-b border-stone-200 md:border-b-0">
           <button 
             onClick={() => setActiveTab('clients')}
-            className={`text-left px-4 py-3 text-xs uppercase tracking-widest font-bold font-oswald flex items-center gap-3 transition-colors ${
+            className={`text-left px-4 py-3 text-xs uppercase tracking-widest font-bold font-oswald flex items-center gap-3 transition-colors shrink-0 whitespace-nowrap ${
               activeTab === 'clients' ? 'bg-stone-900 text-white' : 'hover:bg-stone-100'
             }`}
           >
@@ -66,7 +66,7 @@ export const CoachDashboard: React.FC<CoachDashboardProps> = ({ isHeadCoach, onE
             <>
               <button 
                 onClick={() => setActiveTab('all-clients')}
-                className={`text-left px-4 py-3 text-xs uppercase tracking-widest font-bold font-oswald flex items-center gap-3 transition-colors ${
+                className={`text-left px-4 py-3 text-xs uppercase tracking-widest font-bold font-oswald flex items-center gap-3 transition-colors shrink-0 whitespace-nowrap ${
                   activeTab === 'all-clients' ? 'bg-stone-900 text-white' : 'hover:bg-stone-100'
                 }`}
               >
@@ -75,7 +75,7 @@ export const CoachDashboard: React.FC<CoachDashboardProps> = ({ isHeadCoach, onE
               </button>
               <button 
                 onClick={() => setActiveTab('coaches')}
-                className={`text-left px-4 py-3 text-xs uppercase tracking-widest font-bold font-oswald flex items-center gap-3 transition-colors ${
+                className={`text-left px-4 py-3 text-xs uppercase tracking-widest font-bold font-oswald flex items-center gap-3 transition-colors shrink-0 whitespace-nowrap ${
                   activeTab === 'coaches' ? 'bg-stone-900 text-white' : 'hover:bg-stone-100'
                 }`}
               >
@@ -87,7 +87,7 @@ export const CoachDashboard: React.FC<CoachDashboardProps> = ({ isHeadCoach, onE
 
           <button 
             onClick={() => setActiveTab('program-library')}
-            className={`text-left px-4 py-3 text-xs uppercase tracking-widest font-bold font-oswald flex items-center gap-3 transition-colors ${
+            className={`text-left px-4 py-3 text-xs uppercase tracking-widest font-bold font-oswald flex items-center gap-3 transition-colors shrink-0 whitespace-nowrap ${
               activeTab === 'program-library' ? 'bg-stone-900 text-white' : 'hover:bg-stone-100'
             }`}
           >
@@ -97,7 +97,7 @@ export const CoachDashboard: React.FC<CoachDashboardProps> = ({ isHeadCoach, onE
 
           <button 
             onClick={() => setActiveTab('workout-library')}
-            className={`text-left px-4 py-3 text-xs uppercase tracking-widest font-bold font-oswald flex items-center gap-3 transition-colors ${
+            className={`text-left px-4 py-3 text-xs uppercase tracking-widest font-bold font-oswald flex items-center gap-3 transition-colors shrink-0 whitespace-nowrap ${
               activeTab === 'workout-library' ? 'bg-stone-900 text-white' : 'hover:bg-stone-100'
             }`}
           >
@@ -107,7 +107,7 @@ export const CoachDashboard: React.FC<CoachDashboardProps> = ({ isHeadCoach, onE
 
           <button 
             onClick={() => setActiveTab('settings')}
-            className={`text-left px-4 py-3 text-xs uppercase tracking-widest font-bold font-oswald flex items-center gap-3 transition-colors ${
+            className={`text-left px-4 py-3 text-xs uppercase tracking-widest font-bold font-oswald flex items-center gap-3 transition-colors shrink-0 whitespace-nowrap ${
               activeTab === 'settings' ? 'bg-stone-900 text-white' : 'hover:bg-stone-100'
             }`}
           >
@@ -171,8 +171,8 @@ export const CoachDashboard: React.FC<CoachDashboardProps> = ({ isHeadCoach, onE
                   </button>
                 </div>
 
-                <div className="bg-white border border-stone-200">
-                  <table className="w-full text-left">
+                <div className="bg-white border border-stone-200 overflow-x-auto">
+                  <table className="w-full text-left min-w-[500px] md:min-w-0">
                     <thead className="bg-stone-100 text-[10px] uppercase tracking-widest font-bold text-stone-500 font-oswald border-b border-stone-200">
                       <tr>
                         <th className="px-6 py-4">Name</th>
