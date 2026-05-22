@@ -536,7 +536,7 @@ export default function App() {
             <div
               className="flex flex-col cursor-pointer hover:opacity-70 transition-opacity"
               onClick={() => {
-                navigate("dashboard");
+                navigate("assessment");
               }}
             >
               <h1 className="text-5xl md:text-7xl font-logo tracking-tight font-normal text-stone-900 leading-none">

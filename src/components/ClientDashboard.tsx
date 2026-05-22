@@ -234,7 +234,7 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             {/* Training Box */}
             <div 
-              onClick={onOpenTrainingPreview}
+              onClick={onEnterTrainingFull}
               className="group cursor-pointer bg-stone-900 text-white p-8 border border-stone-900 relative overflow-hidden flex flex-col justify-between min-h-[240px] shadow-lg shadow-stone-200/50 hover:shadow-xl transition-all"
             >
               <div className="absolute inset-0 bg-[repeating-linear-gradient(45deg,transparent,transparent_10px,rgba(255,255,255,0.03)_10px,rgba(255,255,255,0.03)_20px)]" />
@@ -245,10 +245,6 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({
               <div className="relative z-10 mt-8 space-y-4">
                 <p className="text-sm font-serif italic text-stone-400">View your active training block, structured sessions, and track performance.</p>
                 <div 
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onEnterTrainingFull();
-                  }}
                   className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-stone-200 hover:text-white transition-colors cursor-pointer"
                 >
                   Enter Protocol <ChevronRight size={14} />
@@ -258,7 +254,7 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({
 
             {/* Nutrition Box */}
             <div 
-              onClick={onOpenNutritionPreview}
+              onClick={onEnterNutritionFull}
               className="group cursor-pointer bg-stone-900 text-white p-8 border border-stone-900 relative overflow-hidden flex flex-col justify-between min-h-[240px] shadow-lg shadow-stone-200/50 hover:shadow-xl transition-all"
             >
               <div className="absolute inset-0 bg-[repeating-linear-gradient(-45deg,transparent,transparent_10px,rgba(255,255,255,0.03)_10px,rgba(255,255,255,0.03)_20px)]" />
@@ -269,10 +265,6 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({
               <div className="relative z-10 mt-8 space-y-4">
                 <p className="text-sm font-serif italic text-stone-400">Review your daily macros, meal targets, and supplementation guidance.</p>
                 <div 
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onEnterNutritionFull();
-                  }}
                   className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-stone-200 hover:text-white transition-colors cursor-pointer"
                 >
                   View Meal Plan <ChevronRight size={14} />
