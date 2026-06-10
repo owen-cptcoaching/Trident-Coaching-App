@@ -130,7 +130,7 @@ export default function App() {
         clientId: "Sarah Connor",
         title: "Consolidate 8h Sleep",
         description: "Ensure deep recovery, off screens 1 hour before bed.",
-        assignedBy: "Mike Mentzer",
+        assignedBy: "Owen",
         category: "Recovery",
         isCompleted: false,
         createdAt: new Date().toISOString()
@@ -140,7 +140,7 @@ export default function App() {
         clientId: "David Goggins",
         title: "Log morning heart rate",
         description: "Check HRV and resting HR immediately after waking up.",
-        assignedBy: "Tom Platz",
+        assignedBy: "Owen",
         category: "Training",
         isCompleted: false,
         createdAt: new Date().toISOString()
@@ -150,7 +150,7 @@ export default function App() {
         clientId: "John Doe",
         title: "Dynamic Warm-up Sequence",
         description: "10 mins mobility before starting main working sets.",
-        assignedBy: "Mike Mentzer",
+        assignedBy: "Owen",
         category: "Training",
         isCompleted: true,
         createdAt: new Date().toISOString()
@@ -841,7 +841,7 @@ export default function App() {
                 </p>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-12">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-12">
                 <div className="bg-white border border-stone-200 p-8 flex flex-col hover:border-stone-400 transition-colors">
                   <div className="flex justify-between items-start mb-6 border-b border-stone-100 pb-6">
                     <div>
@@ -867,7 +867,71 @@ export default function App() {
                   </div>
 
                   <a 
-                    href="mailto:owen.cpt1@gmail.com?subject=Coaching Inquiry from Trident App"
+                    href="mailto:owen.cpt1@gmail.com?subject=Coaching Inquiry (Owen) from Trident App"
+                    className="w-full bg-stone-900 text-white p-4 text-xs font-bold uppercase tracking-widest font-oswald hover:bg-stone-800 transition-colors flex items-center justify-center gap-2"
+                  >
+                    Email Coach <ArrowRight size={14} />
+                  </a>
+                </div>
+
+                <div className="bg-white border border-stone-200 p-8 flex flex-col hover:border-stone-400 transition-colors">
+                  <div className="flex justify-between items-start mb-6 border-b border-stone-100 pb-6">
+                    <div>
+                      <h3 className="text-2xl font-bold uppercase tracking-tight font-oswald text-stone-900">Kayden Blackwell</h3>
+                      <p className="text-stone-500 font-serif italic mt-1 text-sm">Elite Performance Coach</p>
+                    </div>
+                    <span className="bg-stone-100 px-3 py-1 text-[10px] uppercase tracking-widest font-bold text-stone-900">
+                      Accepting Clients
+                    </span>
+                  </div>
+                  
+                  <div className="space-y-6 mb-8 flex-grow">
+                    <div>
+                      <h4 className="text-[10px] uppercase tracking-widest font-bold text-stone-400 mb-2 font-oswald">Specialties</h4>
+                      <p className="text-sm font-bold text-stone-800">Powerlifting, Strength & Conditioning, Athletic Development</p>
+                    </div>
+                    <div>
+                      <h4 className="text-[10px] uppercase tracking-widest font-bold text-stone-400 mb-2 font-oswald">Bio</h4>
+                      <p className="text-sm text-stone-600 leading-relaxed font-serif italic">
+                        "Optimizing pure power output and resilient human mechanics. Specializing in science-backed bar speeds, heavy training cycles, and athletic dominance."
+                      </p>
+                    </div>
+                  </div>
+
+                  <a 
+                    href="mailto:owen.cpt1@gmail.com?subject=Coaching Inquiry (Kayden Blackwell) from Trident App"
+                    className="w-full bg-stone-900 text-white p-4 text-xs font-bold uppercase tracking-widest font-oswald hover:bg-stone-800 transition-colors flex items-center justify-center gap-2"
+                  >
+                    Email Coach <ArrowRight size={14} />
+                  </a>
+                </div>
+
+                <div className="bg-white border border-stone-200 p-8 flex flex-col hover:border-stone-400 transition-colors">
+                  <div className="flex justify-between items-start mb-6 border-b border-stone-100 pb-6">
+                    <div>
+                      <h3 className="text-2xl font-bold uppercase tracking-tight font-oswald text-stone-900">Fisher Perry</h3>
+                      <p className="text-stone-500 font-serif italic mt-1 text-sm">Physique Specialist & Contest Prep</p>
+                    </div>
+                    <span className="bg-stone-100 px-3 py-1 text-[10px] uppercase tracking-widest font-bold text-stone-900">
+                      Accepting Clients
+                    </span>
+                  </div>
+                  
+                  <div className="space-y-6 mb-8 flex-grow">
+                    <div>
+                      <h4 className="text-[10px] uppercase tracking-widest font-bold text-stone-400 mb-2 font-oswald">Specialties</h4>
+                      <p className="text-sm font-bold text-stone-800">Bodybuilding, High-Definition Sculpting, Metabolic Optimizations</p>
+                    </div>
+                    <div>
+                      <h4 className="text-[10px] uppercase tracking-widest font-bold text-stone-400 mb-2 font-oswald">Bio</h4>
+                      <p className="text-sm text-stone-600 leading-relaxed font-serif italic">
+                        "Sculpting precision physiques through nutritional mastery, high-stimulus volume setups, and meticulously planned aesthetic transformations."
+                      </p>
+                    </div>
+                  </div>
+
+                  <a 
+                    href="mailto:owen.cpt1@gmail.com?subject=Coaching Inquiry (Fisher Perry) from Trident App"
                     className="w-full bg-stone-900 text-white p-4 text-xs font-bold uppercase tracking-widest font-oswald hover:bg-stone-800 transition-colors flex items-center justify-center gap-2"
                   >
                     Email Coach <ArrowRight size={14} />

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Users, UserPlus, Settings, Activity, ArrowRight, ChevronDown, Dumbbell, BookOpen, X, Plus, ClipboardList, Trash2, CheckCircle, AlertCircle, Check } from 'lucide-react';
+import { Users, UserPlus, Settings, Activity, ArrowRight, ChevronDown, Dumbbell, BookOpen, X, Plus, ClipboardList, Trash2, CheckCircle, AlertCircle, Check, Search } from 'lucide-react';
 import { ClientTask } from '../types';
 import { cn } from '../lib/utils';
 
@@ -21,7 +21,7 @@ export const CoachDashboard: React.FC<CoachDashboardProps> = ({
   onToggleTask,
   onDeleteTask
 }) => {
-  const [activeTab, setActiveTab ] = useState<'clients' | 'all-clients' | 'coaches' | 'settings' | 'workout-library' | 'program-library' | 'add-client'>('clients');
+  const [activeTab, setActiveTab ] = useState<'clients' | 'all-clients' | 'coaches' | 'settings' | 'workout-library' | 'exercise-library' | 'program-library' | 'add-client' | 'invite-coach'>('clients');
   const [revenuePeriod, setRevenuePeriod] = useState<'monthly' | 'yearly' | 'all-time'>('monthly');
   const [isRevenueExpanded, setIsRevenueExpanded] = useState(false);
   const [isPeriodDropdownOpen, setIsPeriodDropdownOpen] = useState(false);
@@ -32,18 +32,121 @@ export const CoachDashboard: React.FC<CoachDashboardProps> = ({
   const [newTaskCategory, setNewTaskCategory] = useState<'Nutrition' | 'Hydration' | 'Recovery' | 'Training'>('Nutrition');
   const [taskErrorMessage, setTaskErrorMessage] = useState('');
 
+  // Invitation Form State
+  const [inviteName, setInviteName] = useState('');
+  const [inviteEmail, setInviteEmail] = useState('');
+  const [inviteSpecialization, setInviteSpecialization] = useState('Strength & Athletic Performance');
+  const [inviteNotes, setInviteNotes] = useState('');
+  const [isInviteSuccess, setIsInviteSuccess] = useState(false);
+  const [tempInviteCode, setTempInviteCode] = useState('');
+
+  // Exercise Library State
+  const [exerciseSearch, setExerciseSearch] = useState('');
+  const [exerciseCategory, setExerciseCategory] = useState<string>('All');
+  const [customExercises, setCustomExercises] = useState<any[]>([
+    { id: '1', name: 'Barbell Back Squat', category: 'Quads', equipment: 'Barbell', target: 'Quads & Glutes', notes: 'Maintain an upright torso, drive knees outward, and squat below parallel.', isCustom: false },
+    { id: '2', name: 'Romanian Deadlift', category: 'Hamstrings', equipment: 'Barbell', target: 'Hamstrings & Glutes', notes: 'Hinge at the hips, keep back flat, and lower the bar until a hamstring stretch is felt.', isCustom: false },
+    { id: '3', name: 'Barbell Bench Press', category: 'Chest', equipment: 'Barbell', target: 'Pectorals & Triceps', notes: 'Retract scapula, touch the chest at mid-sternum, and drive the feet into the floor.', isCustom: false },
+    { id: '4', name: 'Incline Dumbbell Press', category: 'Chest', equipment: 'Dumbbell', target: 'Upper Chest & Front Delts', notes: 'Set incline to 30 degrees. Keep elbows tucked slightly to protect shoulders.', isCustom: false },
+    { id: '5', name: 'Weighted Pull-ups', category: 'Back', equipment: 'Bodyweight', target: 'Lats & Biceps', notes: 'Depress and retract shoulders at the start of the movement, pull chest to the bar.', isCustom: false },
+    { id: '6', name: 'Barbell Row', category: 'Back', equipment: 'Barbell', target: 'Lats & Upper Back', notes: 'Hinge at 45 degrees. Pull the barbell toward your lower ribs.', isCustom: false },
+    { id: '7', name: 'Overhead Dumbbell Press', category: 'Shoulders', equipment: 'Dumbbell', target: 'Anterior & Lateral Deltoids', notes: 'Keep core tight and do not hyperextend the lower back as you press overhead.', isCustom: false },
+    { id: '8', name: 'Lateral Raises', category: 'Shoulders', equipment: 'Dumbbell', target: 'Lateral Deltoids', notes: 'Lean slightly forward and raise dumbbells out to the sides in the scapular plane.', isCustom: false },
+    { id: '9', name: 'Incline Dumbbell Curls', category: 'Biceps', equipment: 'Dumbbell', target: 'Biceps Brachii', notes: 'Maintain shoulder extension at the bottom. Squeeze biceps hard at the top.', isCustom: false },
+    { id: '10', name: 'Tricep Rope Pushdowns', category: 'Triceps', equipment: 'Cables', target: 'Triceps Long & Lateral Heads', notes: 'Keep elbows pinned to your sides and flare the wrist out at completion.', isCustom: false },
+    { id: '11', name: 'Hanging Leg Raises', category: 'Core', equipment: 'Bodyweight', target: 'Rectus Abdominis', notes: 'Avoid swinging. Pull hips up toward your ribs, not just raising legs.', isCustom: false },
+    { id: '12', name: 'Cable Woodchoppers', category: 'Core', equipment: 'Cables', target: 'Obliques & Rotation', notes: 'Pivot the back foot and drive rotation through the torso, not just arms.', isCustom: false },
+    { id: '13', name: 'Barbell Hip Thrust', category: 'Glutes', equipment: 'Barbell', target: 'Gluteus Maximus', notes: 'Drive through your heels, extend hips fully, and squeeze glutes hard at the top peak.', isCustom: false }
+  ]);
+  const [isAddExerciseOpen, setIsAddExerciseOpen] = useState(false);
+  const [newExName, setNewExName] = useState('');
+  const [newExCategory, setNewExCategory] = useState('Chest');
+  const [newExEquipment, setNewExEquipment] = useState('Barbell');
+  const [newExTarget, setNewExTarget] = useState('');
+
+  const handleAddExerciseSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newExName.trim()) {
+      alert('Please enter an exercise name.');
+      return;
+    }
+    const newEx = {
+      id: `custom-${Date.now()}`,
+      name: newExName.trim(),
+      category: newExCategory,
+      equipment: newExEquipment,
+      target: newExTarget.trim() || 'General Conditioning',
+      notes: 'Perform with controlled tempo and pristine mechanics.',
+      isCustom: true
+    };
+    setCustomExercises([newEx, ...customExercises]);
+    setNewExName('');
+    setNewExTarget('');
+    setIsAddExerciseOpen(false);
+  };
+
+  const handleDeleteExercise = (id: string) => {
+    if (confirm('Are you sure you want to delete this custom exercise?')) {
+      setCustomExercises(customExercises.filter(ex => ex.id !== id));
+    }
+  };
+
   // Placeholder data
   const clients = [
-    { id: 1, name: 'John Doe', status: 'Active', phase: 'Hypertrophy', coach: 'Mike Mentzer' },
-    { id: 2, name: 'Sarah Connor', status: 'Onboarding', phase: 'Strength', coach: 'Mike Mentzer' },
-    { id: 3, name: 'David Goggins', status: 'Active', phase: 'Power', coach: 'Tom Platz' },
+    { id: 1, name: 'John Doe', status: 'Active', phase: 'Hypertrophy', coach: 'Head Coach' },
+    { id: 2, name: 'Sarah Connor', status: 'Onboarding', phase: 'Strength', coach: 'Head Coach' },
+    { id: 3, name: 'David Goggins', status: 'Active', phase: 'Power', coach: 'Head Coach' },
     { id: 4, name: 'Ronnie Coleman', status: 'Active', phase: 'Hypertrophy', coach: 'Head Coach' },
   ];
 
-  const coaches = [
-    { id: 1, name: 'Mike Mentzer', activeClients: 12, specialization: 'Hypertrophy' },
-    { id: 2, name: 'Tom Platz', activeClients: 8, specialization: 'Legs / Strength' },
-  ];
+  const [coaches, setCoaches] = useState([
+    { id: 1, name: 'Kayden Blackwell', activeClients: 0, specialization: 'Strength & Athletic Performance' },
+    { id: 2, name: 'Fisher Perry', activeClients: 0, specialization: 'Physique & Contest Prep' }
+  ]);
+
+  const handleInviteCoachSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!inviteName.trim() || !inviteEmail.trim()) {
+      alert("Please enter the coach's name and email.");
+      return;
+    }
+
+    const code = `TRIDENT-${Math.random().toString(36).substring(2, 8).toUpperCase()}`;
+    setTempInviteCode(code);
+
+    const newCoachObj = {
+      id: coaches.length + 1,
+      name: inviteName,
+      activeClients: 0,
+      specialization: inviteSpecialization
+    };
+
+    setCoaches([...coaches, newCoachObj]);
+    setIsInviteSuccess(true);
+
+    const subject = encodeURIComponent("Trident Coaching - Activate Your Coach Profile");
+    const body = encodeURIComponent(
+      `Hi ${inviteName},\n\n` +
+      `You have been invited by Owen to activate your professional Coaching Profile on Trident.\n\n` +
+      `Activation Code: ${code}\n` +
+      `Specialization: ${inviteSpecialization}\n\n` +
+      `Click the link below or enter your activation code on the registration page to set up your account and start receiving clients.\n\n` +
+      `Best regards,\n` +
+      `Trident Coaching Systems`
+    );
+    
+    window.location.href = `mailto:${inviteEmail}?subject=${subject}&body=${body}`;
+  };
+
+  const handleResetInviteForm = () => {
+    setInviteName('');
+    setInviteEmail('');
+    setInviteSpecialization('Strength & Athletic Performance');
+    setInviteNotes('');
+    setIsInviteSuccess(false);
+    setTempInviteCode('');
+    setActiveTab('coaches');
+  };
 
   const revenueData = {
     monthly: 12500,
@@ -121,6 +224,16 @@ export const CoachDashboard: React.FC<CoachDashboardProps> = ({
           >
             <Dumbbell size={16} />
             Workout Library
+          </button>
+
+          <button 
+            onClick={() => setActiveTab('exercise-library')}
+            className={`text-left px-4 py-3 text-xs uppercase tracking-widest font-bold font-oswald flex items-center gap-3 transition-colors shrink-0 whitespace-nowrap ${
+              activeTab === 'exercise-library' ? 'bg-stone-900 text-white' : 'hover:bg-stone-100'
+            }`}
+          >
+            <Activity size={16} />
+            Exercise Library
           </button>
 
           <button 
@@ -210,7 +323,13 @@ export const CoachDashboard: React.FC<CoachDashboardProps> = ({
               <div className="space-y-6">
                 <div className="flex justify-between items-center border-b border-stone-200 pb-4">
                   <h2 className="text-xl font-bold uppercase tracking-tight font-oswald">Coach Management</h2>
-                  <button className="bg-stone-900 text-white px-4 py-2 text-[10px] uppercase tracking-widest font-bold hover:bg-stone-800 transition-colors">
+                  <button 
+                    onClick={() => {
+                      setIsInviteSuccess(false);
+                      setActiveTab('invite-coach');
+                    }}
+                    className="bg-stone-900 text-white px-4 py-2 text-[10px] uppercase tracking-widest font-bold hover:bg-stone-800 transition-colors"
+                  >
                     Invite Coach
                   </button>
                 </div>
@@ -372,6 +491,208 @@ export const CoachDashboard: React.FC<CoachDashboardProps> = ({
               </div>
             )}
 
+            {activeTab === 'exercise-library' && (
+              <div className="space-y-6">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-stone-200 pb-4">
+                  <h2 className="text-xl font-bold uppercase tracking-tight font-oswald">Exercise Library</h2>
+                  <button 
+                    onClick={() => setIsAddExerciseOpen(!isAddExerciseOpen)} 
+                    className="bg-stone-900 text-white px-4 py-2 text-[10px] uppercase tracking-widest font-bold hover:bg-stone-800 transition-colors flex items-center gap-2 self-start sm:self-auto"
+                  >
+                    {isAddExerciseOpen ? <X size={12} /> : <Plus size={12} />}
+                    {isAddExerciseOpen ? 'Close Form' : 'Create Exercise'}
+                  </button>
+                </div>
+
+                {/* Add Exercise Collapse Form */}
+                <AnimatePresence>
+                  {isAddExerciseOpen && (
+                    <motion.div
+                      initial={{ height: 0, opacity: 0 }}
+                      animate={{ height: 'auto', opacity: 1 }}
+                      exit={{ height: 0, opacity: 0 }}
+                      transition={{ duration: 0.2 }}
+                      className="overflow-hidden bg-white border border-stone-200 p-6"
+                    >
+                      <h3 className="text-xs font-bold uppercase tracking-wider font-oswald mb-4">Add Custom Exercise</h3>
+                      <form onSubmit={handleAddExerciseSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="space-y-1">
+                          <label className="text-[9px] font-bold uppercase tracking-widest text-stone-400">Exercise Name</label>
+                          <input 
+                            required
+                            type="text" 
+                            value={newExName}
+                            onChange={(e) => setNewExName(e.target.value)}
+                            className="w-full bg-stone-50 border border-stone-200 px-3 py-2 text-xs focus:outline-none focus:border-stone-900 transition-colors" 
+                            placeholder="e.g. Incline Bench Dumbbell Fly"
+                          />
+                        </div>
+                        
+                        <div className="space-y-1">
+                          <label className="text-[9px] font-bold uppercase tracking-widest text-stone-400">Target Muscle / Focus</label>
+                          <input 
+                            type="text" 
+                            value={newExTarget}
+                            onChange={(e) => setNewExTarget(e.target.value)}
+                            className="w-full bg-stone-50 border border-stone-200 px-3 py-2 text-xs focus:outline-none focus:border-stone-900 transition-colors" 
+                            placeholder="e.g. Quads, Upper Chest (optional)"
+                          />
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-3">
+                          <div className="space-y-1">
+                            <label className="text-[9px] font-bold uppercase tracking-widest text-stone-400">Category</label>
+                            <select 
+                              value={newExCategory} 
+                              onChange={(e) => setNewExCategory(e.target.value)}
+                              className="w-full bg-stone-50 border border-stone-200 px-2 py-2 text-xs focus:outline-none focus:border-stone-900 transition-colors"
+                            >
+                              {['Chest', 'Back', 'Shoulders', 'Biceps', 'Triceps', 'Quads', 'Hamstrings', 'Glutes', 'Core'].map(cat => (
+                                <option key={cat} value={cat}>{cat}</option>
+                              ))}
+                            </select>
+                          </div>
+                          
+                          <div className="space-y-1">
+                            <label className="text-[9px] font-bold uppercase tracking-widest text-stone-400">Equipment</label>
+                            <select 
+                              value={newExEquipment} 
+                              onChange={(e) => setNewExEquipment(e.target.value)}
+                              className="w-full bg-stone-50 border border-stone-200 px-2 py-2 text-xs focus:outline-none focus:border-stone-900 transition-colors"
+                            >
+                              {['Barbell', 'Dumbbell', 'Cables', 'Machine', 'Bodyweight'].map(eq => (
+                                <option key={eq} value={eq}>{eq}</option>
+                              ))}
+                            </select>
+                          </div>
+                        </div>
+
+                        <div className="md:col-span-2 pt-2 flex justify-end gap-2">
+                          <button 
+                            type="button" 
+                            onClick={() => setIsAddExerciseOpen(false)}
+                            className="px-4 py-2 border border-stone-200 text-stone-600 text-[10px] font-bold uppercase tracking-wider hover:bg-stone-50 transition-colors"
+                          >
+                            Cancel
+                          </button>
+                          <button 
+                            type="submit"
+                            className="px-6 py-2 bg-stone-900 text-white text-[10px] font-bold uppercase tracking-wider hover:bg-stone-800 transition-colors"
+                          >
+                            Add to Library
+                          </button>
+                        </div>
+                      </form>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+
+                {/* Filter and Search Bar */}
+                <div className="bg-white border border-stone-200 p-4 md:p-6 flex flex-col md:flex-row gap-4 items-stretch md:items-center justify-between">
+                  {/* Category Tabs */}
+                  <div className="flex flex-wrap gap-1.5 overflow-x-auto no-scrollbar py-1">
+                    {['All', 'Chest', 'Back', 'Shoulders', 'Biceps', 'Triceps', 'Quads', 'Hamstrings', 'Glutes', 'Core'].map(cat => (
+                      <button
+                        key={cat}
+                        onClick={() => setExerciseCategory(cat)}
+                        className={cn(
+                          "px-3 py-1.5 text-[9px] font-bold uppercase tracking-widest font-mono rounded-sm transition-colors border",
+                          exerciseCategory === cat 
+                            ? "bg-stone-900 border-stone-900 text-white" 
+                            : "border-stone-200 text-stone-600 hover:border-stone-400"
+                        )}
+                      >
+                        {cat}
+                      </button>
+                    ))}
+                  </div>
+
+                  {/* Search input field */}
+                  <div className="relative leading-none">
+                    <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-stone-400" />
+                    <input 
+                      type="text"
+                      value={exerciseSearch}
+                      onChange={(e) => setExerciseSearch(e.target.value)}
+                      placeholder="Search exercises, gear..."
+                      className="w-full md:w-64 bg-stone-50 border border-stone-200 pl-9 pr-4 py-2 text-xs focus:outline-none focus:border-stone-900 transition-colors rounded-sm"
+                    />
+                    {exerciseSearch && (
+                      <button 
+                        onClick={() => setExerciseSearch('')} 
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-stone-400 hover:text-stone-950 text-xs"
+                      >
+                        Clear
+                      </button>
+                    )}
+                  </div>
+                </div>
+
+                {/* Exercise List Grid */}
+                {(() => {
+                  const filtered = customExercises.filter(ex => {
+                    const matchSearch = ex.name.toLowerCase().includes(exerciseSearch.toLowerCase()) || 
+                                        ex.target.toLowerCase().includes(exerciseSearch.toLowerCase()) ||
+                                        ex.equipment.toLowerCase().includes(exerciseSearch.toLowerCase());
+                    const matchCategory = exerciseCategory === 'All' || ex.category.toLowerCase() === exerciseCategory.toLowerCase();
+                    return matchSearch && matchCategory;
+                  });
+
+                  if (filtered.length === 0) {
+                    return (
+                      <div className="bg-white border border-stone-200 p-12 text-center">
+                        <Activity size={36} className="mx-auto text-stone-300 mb-2" />
+                        <h4 className="text-sm font-bold uppercase tracking-wider font-oswald text-stone-700">No Exercises Found</h4>
+                        <p className="text-xs text-stone-500 font-serif italic mt-1 mb-4">Try refining your search text or selected muscle category.</p>
+                        <button 
+                          onClick={() => { setExerciseSearch(''); setExerciseCategory('All'); }}
+                          className="text-xs uppercase tracking-widest font-bold underline text-stone-900 hover:text-stone-600"
+                        >
+                          Reset Filters
+                        </button>
+                      </div>
+                    );
+                  }
+
+                  return (
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                      {filtered.map(ex => (
+                        <div key={ex.id} className="bg-white border border-stone-200 hover:border-stone-400 transition-colors flex flex-col p-6 relative group">
+                          {/* Top Row: Name and deletion / status */}
+                          <div className="flex justify-between items-start gap-4 mb-3">
+                            <div>
+                              <h3 className="font-bold text-sm text-stone-900 group-hover:text-stone-950 transition-colors leading-tight">
+                                {ex.name}
+                              </h3>
+                              <p className="text-[10px] font-mono text-stone-400 mt-0.5 uppercase tracking-wider">{ex.target}</p>
+                            </div>
+                            
+                            {ex.isCustom ? (
+                              <button 
+                                onClick={() => handleDeleteExercise(ex.id)}
+                                className="text-stone-300 hover:text-red-600 transition-colors p-1 text-xs"
+                                title="Delete Custom Exercise"
+                              >
+                                <Trash2 size={14} />
+                              </button>
+                            ) : (
+                              <span className="text-[8px] bg-stone-100 text-stone-500 uppercase font-mono px-1.5 py-0.5 rounded-sm font-bold">Standard</span>
+                            )}
+                          </div>
+
+                          {/* Action Row / Badges */}
+                          <div className="flex flex-wrap items-center gap-1.5 my-2">
+                            <span className="text-[9px] uppercase tracking-wider font-bold bg-stone-100 px-2 py-0.5 rounded-sm">{ex.category}</span>
+                            <span className="text-[9px] uppercase tracking-wider font-mono bg-stone-100 px-2 py-0.5 rounded-sm text-stone-500">{ex.equipment}</span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  );
+                })()}
+              </div>
+            )}
+
             {activeTab === 'add-client' && (
               <div className="space-y-6">
                 <div className="flex flex-col gap-6 border-b border-stone-200 pb-4">
@@ -442,6 +763,146 @@ export const CoachDashboard: React.FC<CoachDashboardProps> = ({
                     </div>
                   </div>
                 </div>
+              </div>
+            )}
+
+            {activeTab === 'invite-coach' && (
+              <div className="space-y-6 animate-fadeIn">
+                <div className="flex flex-col gap-6 border-b border-stone-200 pb-4">
+                  <div className="flex items-center">
+                    <button 
+                      type="button"
+                      onClick={handleResetInviteForm}
+                      className="text-xs uppercase tracking-widest font-bold text-stone-500 hover:text-stone-900 transition-colors flex items-center gap-2"
+                    >
+                      <ArrowRight size={14} className="rotate-180" />
+                      Back to Coach Management
+                    </button>
+                  </div>
+                  <h2 className="text-xl font-bold uppercase tracking-tight font-oswald text-stone-900">Invite Elite Coach</h2>
+                </div>
+
+                {!isInviteSuccess ? (
+                  <div className="max-w-xl bg-white border border-stone-200 p-8">
+                    <h3 className="text-lg font-bold font-oswald uppercase tracking-tight text-stone-900 mb-2">Send Profile Activation Link</h3>
+                    <p className="text-stone-500 font-serif italic text-sm mb-8">
+                      Invite a new elite coach to join the Trident roster. They will receive an activation code to register and complete their professional profile.
+                    </p>
+
+                    <form onSubmit={handleInviteCoachSubmit} className="space-y-6">
+                      <div className="space-y-2">
+                        <label className="text-[10px] font-bold uppercase tracking-widest text-stone-400">Coach Full Name</label>
+                        <input 
+                          required
+                          value={inviteName}
+                          onChange={(e) => setInviteName(e.target.value)}
+                          className="w-full bg-stone-50 border border-stone-200 px-4 py-3 text-sm focus:outline-none focus:border-stone-900 transition-colors" 
+                          placeholder="e.g. Fisher Perry" 
+                        />
+                      </div>
+
+                      <div className="space-y-2">
+                        <label className="text-[10px] font-bold uppercase tracking-widest text-stone-400">Email Address</label>
+                        <input 
+                          required
+                          type="email"
+                          value={inviteEmail}
+                          onChange={(e) => setInviteEmail(e.target.value)}
+                          className="w-full bg-stone-50 border border-stone-200 px-4 py-3 text-sm focus:outline-none focus:border-stone-900 transition-colors" 
+                          placeholder="coach@example.com" 
+                        />
+                      </div>
+
+                      <div className="space-y-2">
+                        <label className="text-[10px] font-bold uppercase tracking-widest text-stone-400">Assigned Specialization</label>
+                        <select 
+                          value={inviteSpecialization}
+                          onChange={(e) => setInviteSpecialization(e.target.value)}
+                          className="w-full bg-stone-50 border border-stone-200 px-4 py-3 text-sm focus:outline-none focus:border-stone-900 transition-colors"
+                        >
+                          <option value="Strength & Athletic Performance">Strength & Athletic Performance</option>
+                          <option value="Physique & Contest Prep">Physique & Contest Prep</option>
+                          <option value="Bodybuilding & Hypertrophy">Bodybuilding & Hypertrophy</option>
+                          <option value="Nutrition & Dietetics">Nutrition & Dietetics</option>
+                          <option value="Athletic Speed & Development">Athletic Speed & Development</option>
+                        </select>
+                      </div>
+
+                      <div className="space-y-2">
+                        <label className="text-[10px] font-bold uppercase tracking-widest text-stone-400">Additional Onboarding Notes (Optional)</label>
+                        <textarea 
+                          value={inviteNotes}
+                          onChange={(e) => setInviteNotes(e.target.value)}
+                          rows={3}
+                          className="w-full bg-stone-50 border border-stone-200 p-4 text-sm focus:outline-none focus:border-stone-900 transition-colors resize-none" 
+                          placeholder="Add any specific requirements for this coach profile onboarding..." 
+                        />
+                      </div>
+
+                      <button 
+                        type="submit"
+                        className="w-full bg-stone-900 text-white py-4 text-xs font-bold uppercase tracking-widest hover:bg-stone-800 transition-colors flex items-center justify-center gap-2"
+                      >
+                        Generate Invitation & Open Email <ArrowRight size={14} />
+                      </button>
+                    </form>
+                  </div>
+                ) : (
+                  <div className="max-w-xl bg-white border border-stone-200 p-8 text-center space-y-6">
+                    <div className="mx-auto w-16 h-16 bg-stone-100 text-stone-900 rounded-full flex items-center justify-center">
+                      <CheckCircle size={32} />
+                    </div>
+
+                    <div className="space-y-2">
+                      <h3 className="text-xl font-bold font-oswald uppercase tracking-tight text-stone-900">Email Invitation Opened</h3>
+                      <p className="text-stone-500 font-serif italic text-sm">
+                        An email invitation template has been launched in your local email client for <strong>{inviteName}</strong> ({inviteEmail}).
+                      </p>
+                    </div>
+
+                    <div className="bg-stone-50 border border-stone-200 p-6 text-left space-y-4 rounded-sm">
+                      <div>
+                        <span className="text-[9px] font-bold uppercase tracking-widest text-stone-400 font-mono">Generated Activation Code</span>
+                        <div className="text-lg font-mono font-bold tracking-wider text-stone-900 mt-1 select-all select-text bg-white border border-stone-200 px-3 py-2 text-center rounded">
+                          {tempInviteCode}
+                        </div>
+                      </div>
+                      <div className="text-xs text-stone-600 space-y-1">
+                        <p>• <strong>Status:</strong> New profile created with zero active clients.</p>
+                        <p>• <strong>Assigned specialty:</strong> {inviteSpecialization}</p>
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4 pt-4">
+                      <button 
+                        type="button"
+                        onClick={() => {
+                          const subject = encodeURIComponent("Trident Coaching - Activate Your Coach Profile");
+                          const body = encodeURIComponent(
+                            `Hi ${inviteName},\n\n` +
+                            `You have been invited by Owen to activate your professional Coaching Profile on Trident.\n\n` +
+                            `Activation Code: ${tempInviteCode}\n` +
+                            `Specialization: ${inviteSpecialization}\n\n` +
+                            `Click the link below or enter your activation code on the registration page to set up your account and start receiving clients.\n\n` +
+                            `Best regards,\n` +
+                            `Trident Coaching Systems`
+                          );
+                          window.location.href = `mailto:${inviteEmail}?subject=${subject}&body=${body}`;
+                        }}
+                        className="bg-stone-100 hover:bg-stone-200 text-stone-900 py-3 text-xs font-bold uppercase tracking-widest transition-colors font-oswald"
+                      >
+                        Resend Email
+                      </button>
+                      <button 
+                        type="button"
+                        onClick={handleResetInviteForm}
+                        className="bg-stone-900 hover:bg-stone-800 text-white py-3 text-xs font-bold uppercase tracking-widest transition-colors font-oswald"
+                      >
+                        Back to Coaches
+                      </button>
+                    </div>
+                  </div>
+                )}
               </div>
             )}
           </motion.div>
