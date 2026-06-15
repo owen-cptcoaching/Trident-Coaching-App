@@ -350,7 +350,7 @@ export default function App() {
       if (error) {
         console.error("Error getting session:", error);
         // If there's an error like invalid refresh token, clear out the session
-        supabase.auth.signOut();
+        supabase.auth.signOut().catch(() => {});
       }
       const currentUser = session?.user ?? null;
       setUser(currentUser);
@@ -359,6 +359,11 @@ export default function App() {
       } else {
         setIsInitializingAuth(false);
       }
+    }).catch((err) => {
+      console.error("Error checking initial auth state:", err);
+      // Ensure we don't block the UI in loading state on offline / connection issues
+      setIsInitializingAuth(false);
+      setIsInitializingProfile(false);
     });
 
     // Listen for auth changes
@@ -386,13 +391,15 @@ export default function App() {
         supabase.auth.getSession().then(({ data: { session }, error }) => {
           if (error) {
             console.error("Error getting session from popup:", error);
-            supabase.auth.signOut();
+            supabase.auth.signOut().catch(() => {});
           }
           const currentUser = session?.user ?? null;
           setUser(currentUser);
           if (currentUser) {
             fetchUserProfile(currentUser.id, currentUser.email);
           }
+        }).catch((err) => {
+          console.error("Error checking session from popup:", err);
         });
       }
     };

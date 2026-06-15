@@ -8,7 +8,25 @@ if (!supabaseUrl || !supabaseAnonKey) {
   console.warn("Supabase URL and Anon Key are missing. Please add them to your environment variables.");
 }
 
+// Custom lock implementation to prevent "Lock was released because another request stole it" error in multiple tabs/iframes
+const bypassLock = async <R>(
+  _name: string,
+  _acquireTimeout: number,
+  fn: () => Promise<R>
+): Promise<R> => {
+  return await fn();
+};
+
 export const supabase = createClient(
   supabaseUrl || "https://placeholder-url.supabase.co",
-  supabaseAnonKey || "placeholder-key"
+  supabaseAnonKey || "placeholder-key",
+  {
+    auth: {
+      persistSession: true,
+      autoRefreshToken: true,
+      detectSessionInUrl: true,
+      lock: bypassLock,
+    },
+  }
 );
+
